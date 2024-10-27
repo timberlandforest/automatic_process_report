@@ -93,7 +93,7 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
     # Botón de descarga en Streamlit
     with open("reporte_proceso.pdf", "rb") as pdf_file:
         st.download_button(
-            label="Descargar el reporte en PDF",
+            label="Descargar Informe",
             data=pdf_file,
             file_name="reporte_proceso.pdf",
             mime="application/pdf"
@@ -146,7 +146,7 @@ if os.path.exists(archivo_csv):
     
     elif tipo_reporte == 'General':
         # Botón para generar el informe general
-        if st.button("Generar Informe General"):
+        if st.button("Generar Informe"):
             imagenes_por_area = {}
 
             for area, columnas in areas_de_proceso.items():
