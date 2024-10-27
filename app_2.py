@@ -90,6 +90,15 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
         else:
             st.success("Reporte PDF generado: reporte_proceso.pdf")
 
+    # Botón de descarga en Streamlit
+    with open("reporte_proceso.pdf", "rb") as pdf_file:
+        st.download_button(
+            label="Descargar el reporte en PDF",
+            data=pdf_file,
+            file_name="reporte_proceso.pdf",
+            mime="application/pdf"
+        )
+
 # Aplicación en Streamlit
 st.title("Reporte Procesos Automatizado")
 
@@ -151,4 +160,5 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
+
     
