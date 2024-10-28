@@ -7,7 +7,7 @@ from xhtml2pdf import pisa
 
 # Definir las columnas por área de proceso
 areas_de_proceso = {
-    'Combustion': ['ssq_ton_d', 'pct_ssq', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
+    'Combustion': ['ssq_ton_d', 'pct_ssq', 'liq_temp', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
     'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv', 'Atem'],
     'Ensuciamiento': ['T15', 'Soiling_rate_point', 'Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2'],
     'Licor Verde': ['red_TK_disolv_pct', 'sulfidez_LV_crudo_pct'],
@@ -90,7 +90,7 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
         else:
             st.success("Reporte PDF generado: reporte_proceso.pdf")
 
-    # Botón de descarga en Streamlit
+    # Botón de descarga con Streamlit
     with open("reporte_proceso.pdf", "rb") as pdf_file:
         st.download_button(
             label="Descargar Informe",
