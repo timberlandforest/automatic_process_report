@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import streamlit as st
 import os
+import tempfile
 from xhtml2pdf import pisa
 
-# Definir las columnas por área de proceso
+# Define process columns by area
 areas_de_proceso = {
     'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
     'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv', 'Atem'],
@@ -14,7 +15,7 @@ areas_de_proceso = {
     'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
 }
 
-# Función para calcular límites basados en percentiles
+# Function to calculate limits based on percentiles
 def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
     limites = {}
     for columna in columnas:
@@ -26,7 +27,7 @@ def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
             limites[columna] = {'limite_inferior': None, 'limite_superior': None}
     return limites
 
-# Función para graficar y guardar las imágenes
+# Function to plot and save images
 def graficar_media_por_hora_con_limites(df, columnas, limites, area="General"):
     image_paths = []
     df['ts'] = pd.to_datetime(df['ts'])
@@ -64,7 +65,7 @@ def graficar_media_por_hora_con_limites(df, columnas, limites, area="General"):
 
     return image_paths
 
-# Función para generar el reporte HTML y convertirlo a PDF
+# Function to generate the HTML report and convert to PDF
 def generar_reporte_html_y_pdf(imagenes_por_area):
     html_content = "<html><head><title>Reporte de Proceso</title></head><body>"
     html_content += "<h1>Reporte de Visualización de Procesos</h1>"
@@ -76,20 +77,23 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
 
     html_content += "</body></html>"
 
-    # Guardar el archivo HTML
-    with open("reporte_proceso.html", "w") as file:
-        file.write(html_content)
+    # Save HTML content to a temporary file
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp_html:
+        tmp_html.write(html_content.encode('utf-8'))
+        tmp_html_path = tmp_html.name
 
-    # Convertir el HTML a PDF usando xhtml2pdf
-    with open("reporte_proceso.pdf", "wb") as pdf_file:
-        pisa_status = pisa.CreatePDF(html_content, dest=pdf_file)
-        if pisa_status.err:
-            st.error("Hubo un error generando el PDF.")
-        else:
-            st.success("Reporte PDF generado: reporte_proceso.pdf")
+    # Convert HTML to PDF using xhtml2pdf
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_pdf:
+        pdf_path = tmp_pdf.name
+        with open(tmp_pdf.name, "wb") as pdf_file:
+            pisa_status = pisa.CreatePDF(html_content, dest=pdf_file)
+            if pisa_status.err:
+                st.error("Hubo un error generando el PDF.")
+            else:
+                st.success("Reporte PDF generado.")
 
-    # Botón de descarga con Streamlit
-    with open("reporte_proceso.pdf", "rb") as pdf_file:
+    # Streamlit download button for PDF
+    with open(pdf_path, "rb") as pdf_file:
         st.download_button(
             label="Descargar Informe",
             data=pdf_file,
@@ -97,41 +101,34 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
             mime="application/pdf"
         )
 
-# Aplicación en Streamlit
+# Streamlit App
 st.title("Reporte Procesos Automatizado")
 
-# Cargar los datos directamente desde un archivo en la carpeta
-archivo_csv = "data_caldera_opt.csv"  # Reemplaza con el nombre de tu archivo CSV
+# Load data directly from a file in the folder
+archivo_csv = "data_caldera_opt.csv"
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
-    df['ts'] = pd.to_datetime(df['ts'])  # Asegurarse de que la columna de tiempo sea datetime
+    df['ts'] = pd.to_datetime(df['ts'])
 
-    # Seleccionar el rango de fechas para el reporte
+    # Date range selection for the report
     fecha_inicio, fecha_fin = st.date_input(
         "Selecciona el rango de fechas",
         value=(df['ts'].min().date(), df['ts'].max().date())
     )
 
-    # Convertir fechas seleccionadas a datetime para hacer coincidir tipos
     fecha_inicio = pd.to_datetime(fecha_inicio)
     fecha_fin = pd.to_datetime(fecha_fin)
 
-    # Filtrar el DataFrame según el rango de fechas seleccionado
     df_filtrado = df[(df['ts'] >= fecha_inicio) & (df['ts'] <= fecha_fin)]
 
-    # Opción para generar un informe general o por subsistema
     tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Por subsistema', 'General'))
 
     if tipo_reporte == 'Por subsistema':
-        # Selección del área de proceso
         area_seleccionada = st.selectbox("Seleccionar un área de proceso", list(areas_de_proceso.keys()))
-
-        # Selección de columnas
         columnas_seleccionadas = st.multiselect("Selecciona las columnas a graficar", areas_de_proceso[area_seleccionada])
 
-        # Botón para generar las gráficas
         if st.button("Generar informe"):
-            if len(columnas_seleccionadas) > 0:
+            if columnas_seleccionadas:
                 limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
                 imagenes = graficar_media_por_hora_con_limites(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
                 imagenes_por_area = {area_seleccionada: imagenes}
@@ -143,7 +140,6 @@ if os.path.exists(archivo_csv):
                 st.warning("Seleccionar al menos una columna para graficar.")
     
     elif tipo_reporte == 'General':
-        # Botón para generar el informe general
         if st.button("Generar Informe"):
             imagenes_por_area = {}
 
@@ -158,5 +154,4 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
-
     
