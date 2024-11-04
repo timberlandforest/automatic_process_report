@@ -1,6 +1,6 @@
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+import seaborn as sns
 import streamlit as st
 import os
 from xhtml2pdf import pisa
@@ -9,9 +9,9 @@ from xhtml2pdf import pisa
 areas_de_proceso = {
     'Combustion': ['ssq_ton_d', 'pct_ssq', 'liq_temp', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
     'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv', 'Atem'],
-    'Ensuciamiento': ['T15', 'Soiling_rate_point', 'Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2'],
-    'Licor Verde': ['red_TK_disolv_pct', 'sulfidez_LV_crudo_pct'],
-    'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co']
+    'Ensuciamiento': ['T15', 'Soiling_rate_point', 'Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2', 'heat_coef_SH1 [kJ/m2C]', 'heat_coef_SH2 [kJ/m2C]', 'heat_coef_SH3 [kJ/m2C]', 'heat_coef_SH4 [kJ/m2C]'],
+    'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
+    'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
 }
 
 # Función para calcular límites basados en percentiles
@@ -36,13 +36,11 @@ def graficar_media_por_hora_con_limites(df, columnas, limites, area="General"):
         os.makedirs('report_images')
 
     for columna in columnas:
-        df_hora[f'{columna}_movil_8h'] = df_hora[columna].rolling(window=8).mean()
-        df_hora[f'{columna}_movil_30h'] = df_hora[columna].rolling(window=30).mean()
+        df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
 
         plt.figure(figsize=(10, 6))
         sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
-        sns.lineplot(x='ts', y=f'{columna}_movil_8h', data=df_hora, label=f'{columna} (Media móvil 8h)')
-        sns.lineplot(x='ts', y=f'{columna}_movil_30h', data=df_hora, label=f'{columna} (Media móvil 30h)')
+        sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media móvil 10h)')
 
         limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
         limite_superior = limites.get(columna, {}).get('limite_superior', None)
@@ -52,7 +50,7 @@ def graficar_media_por_hora_con_limites(df, columnas, limites, area="General"):
         if limite_superior is not None:
             plt.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
-        plt.title(f'{columna} ({area}) - Medias móviles y límites')
+        plt.title(f'{columna} ({area})')
         plt.xlabel('Fecha')
         plt.ylabel('Valor')
         plt.legend()
@@ -103,7 +101,7 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
 st.title("Reporte Procesos Automatizado")
 
 # Cargar los datos directamente desde un archivo en la carpeta
-archivo_csv = "data_caldera.csv"  # Reemplaza con el nombre de tu archivo CSV
+archivo_csv = "data_caldera_opt.csv"  # Reemplaza con el nombre de tu archivo CSV
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
     df['ts'] = pd.to_datetime(df['ts'])  # Asegurarse de que la columna de tiempo sea datetime
