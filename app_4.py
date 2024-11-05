@@ -29,7 +29,7 @@ def graficar_distribucion_aire(df):
         fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
 
     fig.update_layout(
-        title="Air Distribution [%] (Combustion)",
+        title="Air Distribution [%]",
         xaxis_title="Fecha",
         yaxis_title="Valor",
         legend_title="Variables",
@@ -192,3 +192,4 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
+
