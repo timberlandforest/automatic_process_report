@@ -10,7 +10,7 @@ from xhtml2pdf import pisa
 import re
 from io import BytesIO
 
-# Definir columnas de proceso por área
+# Define process columns by area
 areas_de_proceso = {
     'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
     'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv [°C]', 'Atem'],
@@ -19,11 +19,11 @@ areas_de_proceso = {
     'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
 }
 
-# Función auxiliar para sanitizar nombres de archivos
+# Helper function to sanitize file names
 def sanitize_filename(name):
-    return re.sub(r'[\\/*?:"<>|\[\]/]', '_', name)
+    return re.sub(r'[\\/*?:"<>|\[\]\/]', '_', name)
 
-# Función para calcular límites basados en percentiles
+# Function to calculate limits based on percentiles
 def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
     limites = {}
     for columna in columnas:
@@ -37,11 +37,11 @@ def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
                 'limite_inferior': None, 'limite_superior': None}
     return limites
 
-# Funciones de visualización para cada área
+# Extra visualizations functions for each area
 def graficar_distribucion_aire(df, tipo_grafico):
-    variables = ['Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat']
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
+        variables = ['Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -54,7 +54,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in variables:
+        for var in ['Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Air Distribution [%]")
         plt.xlabel("Fecha")
@@ -68,9 +68,9 @@ def graficar_distribucion_aire(df, tipo_grafico):
         return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
-    variables = ['Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2']
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
+        variables = ['Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -83,7 +83,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in variables:
+        for var in ['Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Pressure_Diff [kPa]")
         plt.xlabel("Fecha")
@@ -133,9 +133,9 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
     return figs
 
 def graficar_contenido_oxigeno(df, tipo_grafico):
-    variables = ['O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
+        variables = ['O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -148,7 +148,7 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in variables:
+        for var in ['O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("O2 Content [%]")
         plt.xlabel("Fecha")
@@ -161,11 +161,11 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         plt.savefig(image_path)
         return image_path
 
-# Función para graficar con Plotly (incluyendo medias móviles y límites)
+# Function to plot with Plotly (including moving averages and limits)
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
     df['ts'] = pd.to_datetime(df['ts'])
-    df_hora = df.set_index('ts').resample('H').mean().reset_index()
+    df_hora = df.set_index('ts').resample('h').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
@@ -193,7 +193,7 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
 
     return image_paths
 
-# Función para generar el reporte en HTML y convertirlo a PDF
+# Function to generate the HTML report and convert to PDF
 def generar_reporte_html_y_pdf(imagenes_por_area):
     html_content = "<html><head><title>Reporte de Proceso</title></head><body>"
     html_content += "<h1>Reporte de Visualización de Procesos</h1>"
@@ -221,8 +221,8 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
             mime="application/pdf"
         )
 
-# Aplicación Streamlit
-st.title("Reporte de Procesos Automatizado")
+# Streamlit App
+st.title("Reporte Procesos Automatizado")
 
 archivo_csv = "data_caldera_opt.csv"
 if os.path.exists(archivo_csv):
@@ -245,25 +245,22 @@ if os.path.exists(archivo_csv):
             limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
 
             if tipo_grafico == 'Matplotlib/Seaborn':
-                # Implementar graficar_con_seaborn si es necesario
-                st.error("La opción Matplotlib/Seaborn aún no está implementada.")
-                imagenes = []
+                imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
             else:
                 imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
 
-            # Visualizaciones adicionales según el área seleccionada
             if area_seleccionada == 'Combustion':
-                imagen_extra = graficar_distribucion_aire(df_filtrado, tipo_grafico)
-                imagenes.append(imagen_extra)
+                image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
+                imagenes.append(image_path)
             elif area_seleccionada == 'Ensuciamiento':
-                imagen_extra = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                imagenes.append(imagen_extra)
+                image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
+                imagenes.append(image_path)
             elif area_seleccionada == 'Licor Verde':
-                imagenes_extra = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
-                imagenes.extend(imagenes_extra)
+                figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
+                imagenes.extend(figs_licor)
             elif area_seleccionada == 'Emisiones':
-                imagen_extra = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                imagenes.append(imagen_extra)
+                image_path = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                imagenes.append(image_path)
 
             imagenes_por_area = {area_seleccionada: imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
