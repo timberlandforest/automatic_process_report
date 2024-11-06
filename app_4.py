@@ -16,7 +16,8 @@ areas_de_proceso = {
     'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv [°C]', 'Atem'],
     'Ensuciamiento': ['T15', 'Soiling_rate_point', 'Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2'],
     'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
-    'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
+    'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]',
+                 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
 
 # Helper function to sanitize file names
@@ -201,6 +202,35 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         plt.savefig(image_path)
         return image_path
 
+def graficar_contenido_monoxido(df, tipo_grafico):
+    if tipo_grafico == 'Plotly Express':
+        fig = go.Figure()
+        variables = ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+        for var in variables:
+            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+        fig.update_layout(
+            title="CO Content [%]",
+            xaxis_title="Fecha",
+            yaxis_title="Valor",
+            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        return fig
+    else:
+        plt.figure(figsize=(10, 6))
+        for var in ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']:
+            plt.plot(df['ts'], df[var], label=var)
+        plt.title("CO Content [%]")
+        plt.xlabel("Fecha")
+        plt.ylabel("Valor")
+        plt.legend(loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        st.pyplot()
+        image_path = f"report_images/CO_Content_Emisiones.png"
+        plt.savefig(image_path)
+        return image_path
+
 # Function to plot with Plotly (including moving averages and limits)
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
@@ -300,6 +330,7 @@ if os.path.exists(archivo_csv):
                 imagenes.extend(figs_licor)
             elif area_seleccionada == 'Emisiones':
                 image_path = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                image_path = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
                 imagenes.append(image_path)
 
             imagenes_por_area = {area_seleccionada: imagenes}
