@@ -37,6 +37,46 @@ def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
                 'limite_inferior': None, 'limite_superior': None}
     return limites
 
+# Function to plot with Seaborn and Matplotlib (including moving averages and limits)
+def graficar_con_seaborn(df, columnas, limites, area="General"):
+    image_paths = []
+    df['ts'] = pd.to_datetime(df['ts'])
+    df_hora = df.set_index('ts').resample('H').mean().reset_index()
+
+    if not os.path.exists('report_images'):
+        os.makedirs('report_images')
+
+    for columna in columnas:
+        df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
+
+        plt.figure(figsize=(10, 6))
+        sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
+        sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
+
+        limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
+        limite_superior = limites.get(columna, {}).get('limite_superior', None)
+
+        if limite_inferior is not None:
+            plt.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
+        if limite_superior is not None:
+            plt.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
+
+        plt.title(f'{columna} ({area})')
+        plt.xlabel('Fecha')
+        plt.ylabel('Valor')
+        plt.legend(loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
+        plt.savefig(image_path)
+        image_paths.append(image_path)
+        plt.close()
+
+        st.image(image_path)
+
+    return image_paths
+
 # Extra visualizations functions for each area
 def graficar_distribucion_aire(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
