@@ -12,9 +12,10 @@ from io import BytesIO
 
 # Define process columns by area
 areas_de_proceso = {
-    'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat', 'Ratio_aircomb_liq', 'Out_gas_temp'],
-    'Vapor': ['Ratio_Steam_Stream', 'temp_lp_vapor_post_vv [°C]', 'Atem'],
-    'Ensuciamiento': ['T15', 'Soiling_rate_point', 'Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2'],
+    'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario',
+                   'combustion_air_liquor_ratio [Nm3/kg DS]', 'output_gas_temperature [°C]'],
+    'Vapor': ['steam_liquor_ratio [ton vap/kg DS]', 'temp_lp_vapor_post_vv [°C]', 'Atemperacion [°C]'],
+    'Ensuciamiento': ['T15 [°C]', 'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
     'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
     'Emisiones': ['cems1_nox', 'cems1_mp10', 'cems1_so2', 'cems1_trs', 'cems1_co', 'O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]',
                  'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
@@ -85,7 +86,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 def graficar_distribucion_aire(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
-        variables = ['Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat']
+        variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -98,7 +99,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in ['Prim', 'Sec', 'Sec Alt', 'Terc', 'Cuat']:
+        for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Air Distribution [%]")
         plt.xlabel("Fecha")
@@ -114,7 +115,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
 def graficar_diferencia_presion(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
-        variables = ['Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2']
+        variables = ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -127,7 +128,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in ['Diff_Press_SC', 'Diff_Press_BG', 'Diff_Press_ECO1', 'Diff_Press_ECO2']:
+        for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Pressure_Diff [kPa]")
         plt.xlabel("Fecha")
