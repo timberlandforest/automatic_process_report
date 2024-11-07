@@ -180,7 +180,7 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
 def graficar_contenido_oxigeno(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
-        variables = ['O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']
+        variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
         for var in variables:
             fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
         fig.update_layout(
@@ -193,7 +193,7 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         return fig
     else:
         plt.figure(figsize=(10, 6))
-        for var in ['O2_left_cont [%]', 'O2_mid_cont [%]', 'O2_right_content [%]']:
+        for var in ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("O2 Content [%]")
         plt.xlabel("Fecha")
