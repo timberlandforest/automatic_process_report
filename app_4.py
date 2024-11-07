@@ -47,29 +47,32 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    for columna in columnas:
-        df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
+    for i in range(0, len(columnas), 2):
+        plt.figure(figsize=(20, 6))
+        
+        for j, columna in enumerate(columnas[i:i+2]):
+            plt.subplot(1, 2, j + 1)
+            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
 
-        plt.figure(figsize=(10, 6))
-        sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
-        sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
+            sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
+            sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
 
-        limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
-        limite_superior = limites.get(columna, {}).get('limite_superior', None)
+            limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
+            limite_superior = limites.get(columna, {}).get('limite_superior', None)
 
-        if limite_inferior is not None:
-            plt.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
-        if limite_superior is not None:
-            plt.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
+            if limite_inferior is not None:
+                plt.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
+            if limite_superior is not None:
+                plt.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
-        plt.title(f'{columna} ({area})')
-        plt.xlabel('Fecha')
-        plt.ylabel('Valor')
-        plt.legend(loc='upper left')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
+            plt.title(f'{columna} ({area})')
+            plt.xlabel('Fecha')
+            plt.ylabel('Valor')
+            plt.legend(loc='upper left')
+            plt.xticks(rotation=45)
+            plt.tight_layout()
 
-        image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
+        image_path = f'report_images/{sanitize_filename("_".join(columnas[i:i+2]))}_{area}.png'
         plt.savefig(image_path)
         image_paths.append(image_path)
         plt.close()
@@ -263,15 +266,17 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
 
     return image_paths
 
-# Function to generate the HTML report and convert to PDF
 def generar_reporte_html_y_pdf(imagenes_por_area):
     html_content = "<html><head><title>Reporte de Proceso</title></head><body>"
     html_content += "<h1>Reporte de Visualización de Procesos</h1>"
 
     for area, imagenes in imagenes_por_area.items():
         html_content += f"<h2>Área: {area}</h2>"
-        for imagen in imagenes:
-            html_content += f'<img src="{imagen}" width="800"><br>'
+        for i in range(0, len(imagenes), 2):
+            html_content += '<div style="display: flex; justify-content: space-between;">'
+            for img in imagenes[i:i+2]:
+                html_content += f'<img src="{img}" width="49%"><br>'
+            html_content += '</div>'
 
     html_content += "</body></html>"
 
