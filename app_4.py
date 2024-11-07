@@ -243,26 +243,34 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    for columna in columnas:
-        df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
-        fig = px.line(df_hora, x='ts', y=[columna, f'{columna}_movil_10h'],
-                      labels={columna: f'{columna}', f'{columna}_movil_10h': f'{columna} (Media Móvil 10h)'},
-                      title=f'{columna} ({area})')
-        fig.update_layout(
-            legend_title_text='',
-            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
-        )
-        limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
-        limite_superior = limites.get(columna, {}).get('limite_superior', None)
-        if limite_inferior is not None:
-            fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
-        if limite_superior is not None:
-            fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
+    for i in range(0, len(columnas), 2):
+        figs = []
+        for columna in columnas[i:i+2]:
+            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
+            fig = px.line(df_hora, x='ts', y=[columna, f'{columna}_movil_10h'],
+                          labels={columna: f'{columna}', f'{columna}_movil_10h': f'{columna} (Media Móvil 10h)'},
+                          title=f'{columna} ({area})')
+            fig.update_layout(
+                legend_title_text='',
+                legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+            )
 
-        image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
-        fig.write_image(image_path)
-        image_paths.append(image_path)
-        st.plotly_chart(fig, use_container_width=True)
+            limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
+            limite_superior = limites.get(columna, {}).get('limite_superior', None)
+            if limite_inferior is not None:
+                fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
+            if limite_superior is not None:
+                fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
+
+            image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
+            fig.write_image(image_path)
+            image_paths.append(image_path)
+            figs.append(fig)
+
+        # Mostrar dos gráficos por fila en Streamlit
+        st.plotly_chart(figs[0], use_container_width=True)
+        if len(figs) > 1:
+            st.plotly_chart(figs[1], use_container_width=True)
 
     return image_paths
 
@@ -342,3 +350,4 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
+
