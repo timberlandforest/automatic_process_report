@@ -17,8 +17,8 @@ areas_de_proceso = {
     'Vapor': ['steam_liquor_ratio [ton vap/kg DS]', 'temp_lp_vapor_post_vv [°C]', 'Atemperacion [°C]'],
     'Ensuciamiento': ['T15 [°C]', 'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
     'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
-    'Emisiones': ['cems1_nox [mg/Nm³]', 'cems1_mp10 [mg/Nm³]', 'cems1_so2 [mg/Nm³]', 'cems1_trs [mg/Nm³]', 'cems1_co [mg/Nm³]', 'O2_left_cont [%]',
-                  'O2_mid_cont [%]', 'O2_right_content [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+    'Emisiones': ['cems1_nox [mg/Nm³]', 'cems1_mp10 [mg/Nm³]', 'cems1_so2 [mg/Nm³]', 'cems1_trs [mg/Nm³]', 'cems1_co [mg/Nm³]', 
+              'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
 
 # Helper function to sanitize file names
