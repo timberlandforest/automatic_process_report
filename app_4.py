@@ -82,7 +82,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 
     return image_paths
 
-# Extra visualizations functions for each area
+# Functions for extra visualizations
 def graficar_distribucion_aire(df, tipo_grafico):
     image_path = "report_images/Air_Distribution_Combustion.png"
     if tipo_grafico == 'Plotly Express':
@@ -235,7 +235,47 @@ def graficar_contenido_monoxido(df, tipo_grafico):
         st.pyplot()
     return image_path
 
-# Function to generate the report HTML and PDF
+# Function to plot with Plotly (including moving averages and limits)
+def graficar_con_plotly(df, columnas, limites, area="General"):
+    image_paths = []
+    df['ts'] = pd.to_datetime(df['ts'])
+    df_hora = df.set_index('ts').resample('h').mean().reset_index()
+
+    if not os.path.exists('report_images'):
+        os.makedirs('report_images')
+
+    for i in range(0, len(columnas), 2):
+        figs = []
+        for columna in columnas[i:i+2]:
+            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
+            fig = px.line(df_hora, x='ts', y=[columna, f'{columna}_movil_10h'],
+                          labels={columna: f'{columna}', f'{columna}_movil_10h': f'{columna} (Media Móvil 10h)'},
+                          title=f'{columna} ({area})')
+            fig.update_layout(
+                legend_title_text='',
+                legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+            )
+
+            limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
+            limite_superior = limites.get(columna, {}).get('limite_superior', None)
+            if limite_inferior is not None:
+                fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
+            if limite_superior is not None:
+                fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
+
+            image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
+            fig.write_image(image_path)
+            image_paths.append(image_path)
+            figs.append(fig)
+
+        # Mostrar gráficos en Streamlit
+        st.plotly_chart(figs[0], use_container_width=True)
+        if len(figs) > 1:
+            st.plotly_chart(figs[1], use_container_width=True)
+
+    return image_paths
+
+# Function to generate the HTML and PDF report
 def generar_reporte_html_y_pdf(imagenes_por_area):
     html_content = "<html><head><title>Reporte de Proceso</title></head><body>"
     html_content += "<h1>Reporte de Visualización de Procesos</h1>"
@@ -281,8 +321,6 @@ if os.path.exists(archivo_csv):
     tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Por subsistema', 'General'))
     tipo_grafico = st.radio("¿Con qué librería deseas generar las gráficas?", ('Matplotlib/Seaborn', 'Plotly Express'))
 
-    imagenes_por_area = {}
-
     if tipo_reporte == 'Por subsistema':
         area_seleccionada = st.selectbox("Seleccionar un área de proceso", list(areas_de_proceso.keys()))
         columnas_seleccionadas = areas_de_proceso[area_seleccionada]
@@ -297,16 +335,21 @@ if os.path.exists(archivo_csv):
 
             # Agregar imágenes adicionales según el área seleccionada
             if area_seleccionada == 'Combustion':
-                imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
+                image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
+                imagenes.append(image_path)
             elif area_seleccionada == 'Ensuciamiento':
-                imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
+                image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
+                imagenes.append(image_path)
             elif area_seleccionada == 'Licor Verde':
-                imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
+                figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
+                imagenes.extend(figs_licor)
             elif area_seleccionada == 'Emisiones':
-                imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
-                imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
+                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_oxigeno)
+                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_monoxido)
 
-            imagenes_por_area[area_seleccionada] = imagenes
+            imagenes_por_area = {area_seleccionada: imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
 
     elif tipo_reporte == 'General':
@@ -321,18 +364,23 @@ if os.path.exists(archivo_csv):
                 imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
 
             # Agregar imágenes adicionales para cada área en el informe general
-            for area in areas_de_proceso.keys():
+            for area, columnas in areas_de_proceso.items():
                 if area == 'Combustion':
-                    imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
+                    image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path)
                 elif area == 'Ensuciamiento':
-                    imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
+                    image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path)
                 elif area == 'Licor Verde':
-                    imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
+                    figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
+                    imagenes.extend(figs_licor)
                 elif area == 'Emisiones':
-                    imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
-                    imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
+                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_oxigeno)
+                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_monoxido)
 
-            imagenes_por_area["General"] = imagenes
+            imagenes_por_area = {"General": imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
