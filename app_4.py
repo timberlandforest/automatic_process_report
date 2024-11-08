@@ -318,7 +318,7 @@ if os.path.exists(archivo_csv):
     fecha_inicio, fecha_fin = pd.to_datetime(fecha_inicio), pd.to_datetime(fecha_fin)
     df_filtrado = df[(df['ts'] >= fecha_inicio) & (df['ts'] <= fecha_fin)]
 
-    tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Por subsistema', 'General'))
+    tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('General', 'Subsistema'))
     tipo_grafico = st.radio("¿Con qué librería deseas generar las gráficas?", ('Matplotlib/Seaborn', 'Plotly Express'))
     
     if tipo_reporte == 'General':
@@ -352,7 +352,7 @@ if os.path.exists(archivo_csv):
             imagenes_por_area = {"General": imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
             
-    elif tipo_reporte == 'Por subsistema':
+    elif tipo_reporte == 'Subsistema':
         area_seleccionada = st.selectbox("Seleccionar un área de proceso", list(areas_de_proceso.keys()))
         columnas_seleccionadas = areas_de_proceso[area_seleccionada]
 
