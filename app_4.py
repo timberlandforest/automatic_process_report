@@ -318,7 +318,7 @@ if os.path.exists(archivo_csv):
     fecha_inicio, fecha_fin = pd.to_datetime(fecha_inicio), pd.to_datetime(fecha_fin)
     df_filtrado = df[(df['ts'] >= fecha_inicio) & (df['ts'] <= fecha_fin)]
 
-    tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('General', 'Subsistema'))
+    tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Subsistema', 'General'))
     tipo_grafico = st.radio("¿Con qué librería deseas generar las gráficas?", ('Matplotlib/Seaborn', 'Plotly Express'))
     
     if tipo_reporte == 'Subsistema':
