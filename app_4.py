@@ -353,7 +353,7 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
     
         elif tipo_reporte == 'General':
-        columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
+            columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
 
         if st.button("Generar informe"):
             limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
