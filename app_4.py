@@ -354,14 +354,14 @@ if os.path.exists(archivo_csv):
     
         elif tipo_reporte == 'General':
             columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
-
-        if st.button("Generar informe"):
+            
+            if st.button("Generar informe"):
             limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
-
-            if tipo_grafico == 'Matplotlib/Seaborn':
-                imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
-            else:
-                imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
+            
+                if tipo_grafico == 'Matplotlib/Seaborn':
+                    imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
+                else:
+                    imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
 
             # Agregar imágenes adicionales para cada área en el informe general
             for area, columnas in areas_de_proceso.items():
