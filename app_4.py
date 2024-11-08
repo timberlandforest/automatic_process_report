@@ -84,6 +84,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 
 # Extra visualizations functions for each area
 def graficar_distribucion_aire(df, tipo_grafico):
+    image_path = "report_images/Air_Distribution_Combustion.png"
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
@@ -95,8 +96,8 @@ def graficar_distribucion_aire(df, tipo_grafico):
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
+        fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
-        return fig
     else:
         plt.figure(figsize=(10, 6))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
@@ -107,12 +108,12 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.legend(loc='upper left')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot()
-        image_path = f"report_images/Air_Distribution_Combustion.png"
         plt.savefig(image_path)
-        return image_path
+        st.pyplot()
+    return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
+    image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']
@@ -124,8 +125,8 @@ def graficar_diferencia_presion(df, tipo_grafico):
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
+        fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
-        return fig
     else:
         plt.figure(figsize=(10, 6))
         for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
@@ -136,19 +137,19 @@ def graficar_diferencia_presion(df, tipo_grafico):
         plt.legend(loc='upper left')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot()
-        image_path = f"report_images/Pressure_Diff_Ensuciamiento.png"
         plt.savefig(image_path)
-        return image_path
+        st.pyplot()
+    return image_path
 
 def graficar_comparacion_licor_verde(df, tipo_grafico):
+    figs_paths = []
     comparisons = [
         ('reduction_lab [%]', 'reduction_i [%]', 'Reduction Comparison [%]'),
         ('alcali_lv_lab [g/L]', 'alcali_lv_i [g/L]', 'Alcali Comparison [g/L]'),
         ('sulfidez_lab [%]', 'sulfidez_i [%]', 'Sulfidez Comparison [%]')
     ]
-    figs = []
     for lab_var, inst_var, title in comparisons:
+        image_path = f"report_images/{sanitize_filename(title)}_Licor_Verde.png"
         if tipo_grafico == 'Plotly Express':
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=df['ts'], y=df[lab_var], mode='lines', name=lab_var))
@@ -159,8 +160,8 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
                 yaxis_title="Valor",
                 legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
             )
+            fig.write_image(image_path)
             st.plotly_chart(fig, use_container_width=True)
-            figs.append(fig)
         else:
             plt.figure(figsize=(10, 6))
             plt.plot(df['ts'], df[lab_var], label=lab_var)
@@ -171,13 +172,13 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             plt.legend(loc='upper left')
             plt.xticks(rotation=45)
             plt.tight_layout()
-            st.pyplot()
-            image_path = f"report_images/{sanitize_filename(title)}_Licor_Verde.png"
             plt.savefig(image_path)
-            figs.append(image_path)
-    return figs
+            st.pyplot()
+        figs_paths.append(image_path)
+    return figs_paths
 
 def graficar_contenido_oxigeno(df, tipo_grafico):
+    image_path = "report_images/O2_Content_Emisiones.png"
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
@@ -189,8 +190,8 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
+        fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
-        return fig
     else:
         plt.figure(figsize=(10, 6))
         for var in ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']:
@@ -201,12 +202,12 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         plt.legend(loc='upper left')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot()
-        image_path = f"report_images/O2_Content_Emisiones.png"
         plt.savefig(image_path)
-        return image_path
+        st.pyplot()
+    return image_path
 
 def graficar_contenido_monoxido(df, tipo_grafico):
+    image_path = "report_images/CO_Content_Emisiones.png"
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
@@ -218,8 +219,8 @@ def graficar_contenido_monoxido(df, tipo_grafico):
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
+        fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
-        return fig
     else:
         plt.figure(figsize=(10, 6))
         for var in ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']:
@@ -230,51 +231,11 @@ def graficar_contenido_monoxido(df, tipo_grafico):
         plt.legend(loc='upper left')
         plt.xticks(rotation=45)
         plt.tight_layout()
-        st.pyplot()
-        image_path = f"report_images/CO_Content_Emisiones.png"
         plt.savefig(image_path)
-        return image_path
+        st.pyplot()
+    return image_path
 
-# Function to plot with Plotly (including moving averages and limits)
-def graficar_con_plotly(df, columnas, limites, area="General"):
-    image_paths = []
-    df['ts'] = pd.to_datetime(df['ts'])
-    df_hora = df.set_index('ts').resample('h').mean().reset_index()
-
-    if not os.path.exists('report_images'):
-        os.makedirs('report_images')
-
-    for i in range(0, len(columnas), 2):
-        figs = []
-        for columna in columnas[i:i+2]:
-            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
-            fig = px.line(df_hora, x='ts', y=[columna, f'{columna}_movil_10h'],
-                          labels={columna: f'{columna}', f'{columna}_movil_10h': f'{columna} (Media Móvil 10h)'},
-                          title=f'{columna} ({area})')
-            fig.update_layout(
-                legend_title_text='',
-                legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
-            )
-
-            limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
-            limite_superior = limites.get(columna, {}).get('limite_superior', None)
-            if limite_inferior is not None:
-                fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
-            if limite_superior is not None:
-                fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
-
-            image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
-            fig.write_image(image_path)
-            image_paths.append(image_path)
-            figs.append(fig)
-
-        # Mostrar dos gráficos por fila en Streamlit
-        st.plotly_chart(figs[0], use_container_width=True)
-        if len(figs) > 1:
-            st.plotly_chart(figs[1], use_container_width=True)
-
-    return image_paths
-
+# Function to generate the report HTML and PDF
 def generar_reporte_html_y_pdf(imagenes_por_area):
     html_content = "<html><head><title>Reporte de Proceso</title></head><body>"
     html_content += "<h1>Reporte de Visualización de Procesos</h1>"
@@ -297,7 +258,6 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
         st.error("Hubo un error generando el PDF.")
     else:
         st.success("Reporte PDF generado.")
-
         st.download_button(
             label="Descargar Informe",
             data=pdf_buffer,
@@ -321,6 +281,8 @@ if os.path.exists(archivo_csv):
     tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Por subsistema', 'General'))
     tipo_grafico = st.radio("¿Con qué librería deseas generar las gráficas?", ('Matplotlib/Seaborn', 'Plotly Express'))
 
+    imagenes_por_area = {}
+
     if tipo_reporte == 'Por subsistema':
         area_seleccionada = st.selectbox("Seleccionar un área de proceso", list(areas_de_proceso.keys()))
         columnas_seleccionadas = areas_de_proceso[area_seleccionada]
@@ -335,21 +297,16 @@ if os.path.exists(archivo_csv):
 
             # Agregar imágenes adicionales según el área seleccionada
             if area_seleccionada == 'Combustion':
-                image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
-                imagenes.append(image_path)
+                imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Ensuciamiento':
-                image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                imagenes.append(image_path)
+                imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Licor Verde':
-                figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
-                imagenes.extend(figs_licor)
+                imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Emisiones':
-                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_oxigeno)
-                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_monoxido)
+                imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
+                imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
 
-            imagenes_por_area = {area_seleccionada: imagenes}
+            imagenes_por_area[area_seleccionada] = imagenes
             generar_reporte_html_y_pdf(imagenes_por_area)
 
     elif tipo_reporte == 'General':
@@ -364,23 +321,18 @@ if os.path.exists(archivo_csv):
                 imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
 
             # Agregar imágenes adicionales para cada área en el informe general
-            for area, columnas in areas_de_proceso.items():
+            for area in areas_de_proceso.keys():
                 if area == 'Combustion':
-                    image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path)
+                    imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
                 elif area == 'Ensuciamiento':
-                    image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path)
+                    imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
                 elif area == 'Licor Verde':
-                    figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
-                    imagenes.extend(figs_licor)
+                    imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
                 elif area == 'Emisiones':
-                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_oxigeno)
-                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_monoxido)
+                    imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
+                    imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
 
-            imagenes_por_area = {"General": imagenes}
+            imagenes_por_area["General"] = imagenes
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
