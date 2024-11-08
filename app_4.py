@@ -356,7 +356,7 @@ if os.path.exists(archivo_csv):
             columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
             
             if st.button("Generar informe"):
-            limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
+                limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas)
             
                 if tipo_grafico == 'Matplotlib/Seaborn':
                     imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, "General")
