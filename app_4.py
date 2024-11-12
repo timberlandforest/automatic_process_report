@@ -25,7 +25,8 @@ areas_de_proceso = {
 # Variables that should be grouped and not plotted individually
 omit_individual_plots = {
     'Combustion': ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario'],
-    'Ensuciamiento': ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
+    'Ensuciamiento': ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]',
+                     'heat_coef_SH1 [kJ/m2C]','heat_coef_SH2 [kJ/m2C]','heat_coef_SH3 [kJ/m2C]','heat_coef_SH4 [kJ/m2C]'],
     'Licor Verde': ['reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'],
     'Emisiones': ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
