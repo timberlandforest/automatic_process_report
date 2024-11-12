@@ -53,10 +53,13 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
         
         for j, columna in enumerate(columnas[i:i+2]):
             plt.subplot(1, 2, j + 1)
-            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
+            # Eliminar cálculo de media móvil
+            # df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
 
+            # Graficar solo los datos originales
             sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
-            sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
+            # Eliminar la línea de la media móvil
+            # sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
 
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
@@ -247,15 +250,16 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
     for i in range(0, len(columnas), 2):
         figs = []
         for columna in columnas[i:i+2]:
-            df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
-            fig = px.line(df_hora, x='ts', y=[columna, f'{columna}_movil_10h'],
-                          labels={columna: f'{columna}', f'{columna}_movil_10h': f'{columna} (Media Móvil 10h)'},
+            # Creating the plot without the moving average
+            fig = px.line(df_hora, x='ts', y=columna,
+                          labels={columna: columna},
                           title=f'{columna} ({area})')
             fig.update_layout(
                 legend_title_text='',
                 legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
             )
 
+            # Adding limits if they exist
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
             if limite_inferior is not None:
@@ -263,12 +267,13 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
             if limite_superior is not None:
                 fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
+            # Save the plot to an image file
             image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
             fig.write_image(image_path)
             image_paths.append(image_path)
             figs.append(fig)
 
-        # Mostrar gráficos en Streamlit
+        # Display plots in Streamlit
         st.plotly_chart(figs[0], use_container_width=True)
         if len(figs) > 1:
             st.plotly_chart(figs[1], use_container_width=True)
