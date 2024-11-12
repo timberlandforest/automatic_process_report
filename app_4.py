@@ -61,7 +61,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
     for i in range(0, len(columnas), 2):
-        plt.figure(figsize=(20, 6))
+        plt.figure(figsize=(15, 5))
         for j, columna in enumerate(columnas[i:i+2]):
             plt.subplot(1, 2, j + 1)
             sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
@@ -107,7 +107,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 5))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Air Distribution [%]")
@@ -136,7 +136,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 5))
         for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Pressure_Diff [kPa]")
@@ -166,7 +166,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 5))
         for var in variables:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("Heat Coefficient Distribution [kJ/m2C]")
@@ -202,7 +202,7 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             fig.write_image(image_path)
             st.plotly_chart(fig, use_container_width=True)
         else:
-            plt.figure(figsize=(10, 6))
+            plt.figure(figsize=(15, 5))
             plt.plot(df['ts'], df[lab_var], label=lab_var)
             plt.plot(df['ts'], df[inst_var], label=inst_var)
             plt.title(title)
@@ -232,7 +232,7 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 5))
         for var in ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("O2 Content [%]")
@@ -261,7 +261,7 @@ def graficar_contenido_monoxido(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(15, 5))
         for var in ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']:
             plt.plot(df['ts'], df[var], label=var)
         plt.title("CO Content [%]")
