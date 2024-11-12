@@ -58,7 +58,6 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    # Skip variables that are in the omit_individual_plots for the current area
     columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
     for i in range(0, len(columnas), 2):
@@ -66,7 +65,6 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
         for j, columna in enumerate(columnas[i:i+2]):
             plt.subplot(1, 2, j + 1)
             sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
-
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
 
@@ -86,11 +84,10 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
         plt.savefig(image_path)
         image_paths.append(image_path)
         plt.close()
-
         st.image(image_path)
 
     return image_paths
-
+    
 # Functions for extra visualizations
 def graficar_distribucion_aire(df, tipo_grafico):
     image_path = "report_images/Air_Distribution_Combustion.png"
@@ -377,8 +374,8 @@ if os.path.exists(archivo_csv):
                 image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
                 imagenes.append(image_path)
             elif area_seleccionada == 'Ensuciamiento':
-                image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                imagenes.append(image_path)
+                image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_press_diff)
                 image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
                 imagenes.append(image_path_heat_coef)
             elif area_seleccionada == 'Licor Verde':
