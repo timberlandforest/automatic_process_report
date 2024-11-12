@@ -204,7 +204,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in variables:
-            plt.plot(df['datetime'], df[var], label=var, linewidth)
+            plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Heat Coefficient Distribution [kJ/m2C]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
