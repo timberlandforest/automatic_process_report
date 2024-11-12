@@ -12,20 +12,21 @@ from io import BytesIO
 
 # Define process columns by area
 areas_de_proceso = {
-    'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario',
-                   'combustion_air_liquor_ratio [Nm3/kg DS]', 'output_gas_temperature [°C]'],
-    'Vapor': ['steam_liquor_ratio [ton vap/kg DS]', 'temp_lp_vapor_post_vv [°C]', 'Atemperacion [°C]'],
-    'Ensuciamiento': ['Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
-    'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
-    'Emisiones': ['cems1_nox [mg/Nm³]', 'cems1_mp10 [mg/Nm³]', 'cems1_so2 [mg/Nm³]', 'cems1_trs [mg/Nm³]', 'cems1_co [mg/Nm³]', 
-              'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+    'Combustion': ['Carga [TSS/d]','Solidos a quemado [%]','Temperatura del licor [°C]', 'Primario', 'Secundario', 'Secundario Alto',
+                   'Terciario', 'Cuaternario', 'Aire de combustión/ carga de licor [Nm3/kg DS]', 'Temperatura de gases de salida [°C]'],
+    'Vapor': ['Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 'Atemperacion [°C]'],
+    'Ensuciamiento': ['Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]',
+                     'heat_coef_SH1 [kJ/m2C]','heat_coef_SH2 [kJ/m2C]','heat_coef_SH3 [kJ/m2C]','heat_coef_SH4 [kJ/m2C]'],
+    'Licor Verde': ['reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'],
+    'Emisiones': ['NOx [mg/Nm³]','Material particulado [mg/Nm³]','SO2 [mg/Nm³]','TRS [mg/Nm³]','CO [mg/Nm³]','O2_cont_left [%]',
+                  'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
 
 # Variables that should be grouped and not plotted individually
 omit_individual_plots = {
     'Combustion': ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario'],
     'Ensuciamiento': ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
-    'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
+    'Licor Verde': ['reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'],
     'Emisiones': ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
 
@@ -146,6 +147,37 @@ def graficar_diferencia_presion(df, tipo_grafico):
         plt.tight_layout()
         plt.savefig(image_path)
         st.pyplot()
+    return image_path
+
+def graficar_distribucion_heat_coef(df, tipo_grafico):
+    image_path = "report_images/Heat_Coefficient_Distribution_Ensuciamiento.png"
+    variables = ['heat_coef_SH1 [kJ/m2C]', 'heat_coef_SH2 [kJ/m2C]', 'heat_coef_SH3 [kJ/m2C]', 'heat_coef_SH4 [kJ/m2C]']
+
+    if tipo_grafico == 'Plotly Express':
+        fig = go.Figure()
+        for var in variables:
+            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+        fig.update_layout(
+            title="Heat Coefficient Distribution [kJ/m2C]",
+            xaxis_title="Fecha",
+            yaxis_title="Valor",
+            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+        )
+        fig.write_image(image_path)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        plt.figure(figsize=(10, 6))
+        for var in variables:
+            plt.plot(df['ts'], df[var], label=var)
+        plt.title("Heat Coefficient Distribution [kJ/m2C]")
+        plt.xlabel("Fecha")
+        plt.ylabel("Valor")
+        plt.legend(loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(image_path)
+        st.pyplot()
+
     return image_path
 
 def graficar_comparacion_licor_verde(df, tipo_grafico):
