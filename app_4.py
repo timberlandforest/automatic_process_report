@@ -15,10 +15,18 @@ areas_de_proceso = {
     'Combustion': ['ssq [ton/d]', 'pct_ssq [%]', 'liq_temp [°C]', 'Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario',
                    'combustion_air_liquor_ratio [Nm3/kg DS]', 'output_gas_temperature [°C]'],
     'Vapor': ['steam_liquor_ratio [ton vap/kg DS]', 'temp_lp_vapor_post_vv [°C]', 'Atemperacion [°C]'],
-    'Ensuciamiento': ['T15 [°C]', 'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
+    'Ensuciamiento': ['Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
     'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
     'Emisiones': ['cems1_nox [mg/Nm³]', 'cems1_mp10 [mg/Nm³]', 'cems1_so2 [mg/Nm³]', 'cems1_trs [mg/Nm³]', 'cems1_co [mg/Nm³]', 
               'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+}
+
+# Variables that should be grouped and not plotted individually
+omit_individual_plots = {
+    'Combustion': ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario'],
+    'Ensuciamiento': ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]'],
+    'Licor Verde': ['reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]', 'reduction_i [%]', 'alcali_lv_i [g/L]', 'sulfidez_i [%]'],
+    'Emisiones': ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
 }
 
 # Helper function to sanitize file names
@@ -48,18 +56,14 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
+    # Skip variables that are in the omit_individual_plots for the current area
+    columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
+
     for i in range(0, len(columnas), 2):
         plt.figure(figsize=(20, 6))
-        
         for j, columna in enumerate(columnas[i:i+2]):
             plt.subplot(1, 2, j + 1)
-            # Eliminar cálculo de media móvil
-            # df_hora[f'{columna}_movil_10h'] = df_hora[columna].rolling(window=10).mean()
-
-            # Graficar solo los datos originales
             sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
-            # Eliminar la línea de la media móvil
-            # sns.lineplot(x='ts', y=f'{columna}_movil_10h', data=df_hora, label=f'{columna} (Media Móvil 10h)')
 
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
@@ -242,24 +246,23 @@ def graficar_contenido_monoxido(df, tipo_grafico):
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
     df['ts'] = pd.to_datetime(df['ts'])
-    df_hora = df.set_index('ts').resample('h').mean().reset_index()
+    df_hora = df.set_index('ts').resample('H').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
+    # Skip variables that are in the omit_individual_plots for the current area
+    columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
+
     for i in range(0, len(columnas), 2):
         figs = []
         for columna in columnas[i:i+2]:
-            # Creating the plot without the moving average
-            fig = px.line(df_hora, x='ts', y=columna,
-                          labels={columna: columna},
-                          title=f'{columna} ({area})')
+            fig = px.line(df_hora, x='ts', y=columna, labels={columna: columna}, title=f'{columna} ({area})')
             fig.update_layout(
                 legend_title_text='',
                 legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
             )
 
-            # Adding limits if they exist
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
             if limite_inferior is not None:
@@ -267,13 +270,11 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
             if limite_superior is not None:
                 fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
-            # Save the plot to an image file
             image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
             fig.write_image(image_path)
             image_paths.append(image_path)
             figs.append(fig)
 
-        # Display plots in Streamlit
         st.plotly_chart(figs[0], use_container_width=True)
         if len(figs) > 1:
             st.plotly_chart(figs[1], use_container_width=True)
