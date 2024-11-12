@@ -277,7 +277,7 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']:
-            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("O2 Content [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
