@@ -403,7 +403,7 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
 # Streamlit App
 st.title("Reporte Procesos Automatizado")
 
-archivo_csv = "data_caldera_opt.csv"
+archivo_csv = "data_caldera_opt_2.csv"
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
     df['datetime'] = pd.to_datetime(df['datetime'])
