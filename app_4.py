@@ -145,7 +145,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
-            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Air Distribution [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -174,7 +174,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
-            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Pressure_Diff [kPa]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -192,7 +192,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var, linewidht = 0.5))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
         fig.update_layout(
             title="Heat Coefficient Distribution [kJ/m2C]",
             xaxis_title="Fecha",
@@ -204,7 +204,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in variables:
-            plt.plot(df['datetime'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var, linewidth)
         plt.title("Heat Coefficient Distribution [kJ/m2C]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -245,8 +245,8 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             st.plotly_chart(fig, use_container_width=True)
         else:
             plt.figure(figsize=(20, 16))
-            plt.plot(df['datetime'], df[lab_var], label=lab_var, linewidht = 0.5)
-            plt.plot(df['datetime'], df[inst_var], label=inst_var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[lab_var], label=lab_var, linewidth = 0.5)
+            plt.plot(df['datetime'], df[inst_var], label=inst_var, linewidth = 0.5)
             plt.title(title)
             plt.xlabel("Fecha")
             plt.ylabel("Valor")
@@ -306,7 +306,7 @@ def graficar_contenido_monoxido(df, tipo_grafico):
     else:
         plt.figure(figsize=(20, 16))
         for var in ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']:
-            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("CO Content [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
