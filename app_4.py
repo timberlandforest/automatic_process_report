@@ -13,13 +13,12 @@ from io import BytesIO
 # Define process columns by area
 areas_de_proceso = {
     'Combustion': [
-        'Carga [TSS/d]', 'Solidos a quemado [%]', 'Temperatura del licor [°C]', 
+        'Carga [TSS/d]', 'Solidos a quemado [%]', 'Temperatura LN a boquillas [°C]', 
         'Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario', 
         'Aire de combustión/ carga de licor [Nm3/kg DS]', 'Temperatura de gases de salida [°C]'
     ],
     'Vapor': [
-        'Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 
-        'Atemperacion [°C]'
+        'Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 'Atemperacion [°C]'
     ],
     'Ensuciamiento': [
         'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 
@@ -81,11 +80,11 @@ def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
             }
     return limites
 
-# Function to plot with Seaborn and Matplotlib (including moving averages and limits)
+# Function to plot with Seaborn and Matplotlib
 def graficar_con_seaborn(df, columnas, limites, area="General"):
     image_paths = []
-    df['ts'] = pd.to_datetime(df['ts'])
-    df_hora = df.set_index('ts').resample('H').mean().reset_index()
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df_hora = df.set_index('datetime').resample('H').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
@@ -101,7 +100,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
                 continue
 
             plt.subplot(1, 2, j + 1)
-            sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
+            sns.lineplot(x='datetime', y=columna, data=df_hora, label=columna, linewidth = 2)
 
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
@@ -134,7 +133,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
@@ -144,9 +143,9 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(20, 16))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
-            plt.plot(df['ts'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
         plt.title("Air Distribution [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -163,7 +162,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
         fig = go.Figure()
         variables = ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
         fig.update_layout(
             title="Pressure_Diff [kPa]",
             xaxis_title="Fecha",
@@ -173,9 +172,9 @@ def graficar_diferencia_presion(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(20, 16))
         for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
-            plt.plot(df['ts'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
         plt.title("Pressure_Diff [kPa]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -193,7 +192,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var, linewidht = 0.5))
         fig.update_layout(
             title="Heat Coefficient Distribution [kJ/m2C]",
             xaxis_title="Fecha",
@@ -203,9 +202,9 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(20, 16))
         for var in variables:
-            plt.plot(df['ts'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var)
         plt.title("Heat Coefficient Distribution [kJ/m2C]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -234,8 +233,8 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
         image_path = f"report_images/{sanitize_filename(title)}_Licor_Verde.png"
         if tipo_grafico == 'Plotly Express':
             fig = go.Figure()
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[lab_var], mode='lines', name=lab_var))
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[inst_var], mode='lines', name=inst_var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[lab_var], mode='lines', name=lab_var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[inst_var], mode='lines', name=inst_var))
             fig.update_layout(
                 title=title,
                 xaxis_title="Fecha",
@@ -245,9 +244,9 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             fig.write_image(image_path)
             st.plotly_chart(fig, use_container_width=True)
         else:
-            plt.figure(figsize=(15, 5))
-            plt.plot(df['ts'], df[lab_var], label=lab_var)
-            plt.plot(df['ts'], df[inst_var], label=inst_var)
+            plt.figure(figsize=(20, 16))
+            plt.plot(df['datetime'], df[lab_var], label=lab_var, linewidht = 0.5)
+            plt.plot(df['datetime'], df[inst_var], label=inst_var, linewidht = 0.5)
             plt.title(title)
             plt.xlabel("Fecha")
             plt.ylabel("Valor")
@@ -266,7 +265,7 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         fig = go.Figure()
         variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
         fig.update_layout(
             title="O2 Content [%]",
             xaxis_title="Fecha",
@@ -276,9 +275,9 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(20, 16))
         for var in ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']:
-            plt.plot(df['ts'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
         plt.title("O2 Content [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -295,7 +294,7 @@ def graficar_contenido_monoxido(df, tipo_grafico):
         fig = go.Figure()
         variables = ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
         for var in variables:
-            fig.add_trace(go.Scatter(x=df['ts'], y=df[var], mode='lines', name=var))
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
         fig.update_layout(
             title="CO Content [%]",
             xaxis_title="Fecha",
@@ -305,9 +304,9 @@ def graficar_contenido_monoxido(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(15, 5))
+        plt.figure(figsize=(20, 16))
         for var in ['CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']:
-            plt.plot(df['ts'], df[var], label=var)
+            plt.plot(df['datetime'], df[var], label=var, linewidht = 0.5)
         plt.title("CO Content [%]")
         plt.xlabel("Fecha")
         plt.ylabel("Valor")
@@ -319,11 +318,10 @@ def graficar_contenido_monoxido(df, tipo_grafico):
     return image_path
 
 # Function to plot with Plotly (including moving averages and limits)
-# Function to plot with Plotly (including moving averages and limits)
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
-    df['ts'] = pd.to_datetime(df['ts'])
-    df_hora = df.set_index('ts').resample('H').mean().reset_index()
+    df['datetime'] = pd.to_datetime(df['datetime'])
+    df_hora = df.set_index('datetime').resample('H').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
@@ -339,7 +337,7 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
                 st.warning(f"Column '{columna}' is missing in the data and will be skipped.")
                 continue
             
-            fig = px.line(df_hora, x='ts', y=columna, labels={columna: columna}, title=f'{columna} ({area})')
+            fig = px.line(df_hora, x='datetime', y=columna, labels={columna: columna}, title=f'{columna} ({area})')
             fig.update_layout(
                 legend_title_text='',
                 legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
@@ -401,12 +399,12 @@ st.title("Reporte Procesos Automatizado")
 archivo_csv = "data_caldera_opt.csv"
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
-    df['ts'] = pd.to_datetime(df['ts'])
+    df['datetime'] = pd.to_datetime(df['datetime'])
 
     fecha_inicio, fecha_fin = st.date_input("Selecciona un rango de fechas",
-                                            value=(df['ts'].min().date(), df['ts'].max().date()))
+                                            value=(df['datetime'].min().date(), df['datetime'].max().date()))
     fecha_inicio, fecha_fin = pd.to_datetime(fecha_inicio), pd.to_datetime(fecha_fin)
-    df_filtrado = df[(df['ts'] >= fecha_inicio) & (df['ts'] <= fecha_fin)]
+    df_filtrado = df[(df['datetime'] >= fecha_inicio) & (df['datetime'] <= fecha_fin)]
 
     tipo_reporte = st.radio("¿Deseas generar un reporte general o por subsistema?", ('Por subsistema', 'General'))
     tipo_grafico = st.radio("¿Con qué librería deseas generar las gráficas?", ('Matplotlib/Seaborn', 'Plotly Express'))
