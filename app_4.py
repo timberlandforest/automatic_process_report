@@ -319,6 +319,7 @@ def graficar_contenido_monoxido(df, tipo_grafico):
     return image_path
 
 # Function to plot with Plotly (including moving averages and limits)
+# Function to plot with Plotly (including moving averages and limits)
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
     df['ts'] = pd.to_datetime(df['ts'])
@@ -333,6 +334,11 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
     for i in range(0, len(columnas), 2):
         figs = []
         for columna in columnas[i:i+2]:
+            # Check if the column exists in df_hora before plotting
+            if columna not in df_hora.columns:
+                st.warning(f"Column '{columna}' is missing in the data and will be skipped.")
+                continue
+            
             fig = px.line(df_hora, x='ts', y=columna, labels={columna: columna}, title=f'{columna} ({area})')
             fig.update_layout(
                 legend_title_text='',
@@ -351,9 +357,11 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
             image_paths.append(image_path)
             figs.append(fig)
 
-        st.plotly_chart(figs[0], use_container_width=True)
-        if len(figs) > 1:
-            st.plotly_chart(figs[1], use_container_width=True)
+        # Display plots in Streamlit if figures were created
+        if figs:
+            st.plotly_chart(figs[0], use_container_width=True)
+            if len(figs) > 1:
+                st.plotly_chart(figs[1], use_container_width=True)
 
     return image_paths
 
