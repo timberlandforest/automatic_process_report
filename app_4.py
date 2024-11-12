@@ -143,7 +143,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(16, 14))
+        plt.figure(figsize=(12, 14))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
             plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Air Distribution [%]")
@@ -172,7 +172,7 @@ def graficar_diferencia_presion(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(16, 12))
+        plt.figure(figsize=(12, 14))
         for var in ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]']:
             plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Pressure_Diff [kPa]")
@@ -202,7 +202,7 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(16, 12))
+        plt.figure(figsize=(14, 12))
         for var in variables:
             plt.plot(df['datetime'], df[var], label=var, linewidth = 0.5)
         plt.title("Heat Coefficient Distribution [kJ/m2C]")
