@@ -19,8 +19,7 @@ areas_de_proceso = {
     ],
     'Vapor': [
         'Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 
-        'temp_vapor_pre_atemp1 [°C]', 'temp_vapor_sobrec_post_atemp1 [°C]', 
-        'temp_vapor_sobrec_post_atemp2 [°C]'
+        'Atemperacion [°C]'
     ],
     'Ensuciamiento': [
         'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 
@@ -46,7 +45,7 @@ omit_individual_plots = {
     'Ensuciamiento': [
         'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 
         'Diff_Press_ECO2 [kPa]', 'heat_coef_SH1 [kJ/m2C]', 
-        'heat_coef_SH2 [kJ/m2C]', 'heat_coef_SH3 [kJ/m2C]', 'heat_coef_SH4 [kJ/m2C]'
+        'heat_coef_SH2 [kJ/m2C]', 'heat_coef_SH3 [kJ/m2C]'
     ],
     'Licor Verde': [
         'reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 
