@@ -62,7 +62,11 @@ omit_individual_plots = {
 def sanitize_filename(name):
     return re.sub(r'[\\/*?:"<>|\[\]\/]', '_', name)
 
-# Function to calculate limits based on percentiles
+# Helper function to check if a column exists in the DataFrame
+def column_exists(df, column_name):
+    return column_name in df.columns
+
+# Function to calculate limits based on percentiles with column existence check
 def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
     limites = {}
     for columna in columnas:
