@@ -378,6 +378,8 @@ if os.path.exists(archivo_csv):
             elif area_seleccionada == 'Ensuciamiento':
                 image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
                 imagenes.append(image_path)
+                image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_heat_coef)
             elif area_seleccionada == 'Licor Verde':
                 figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                 imagenes.extend(figs_licor)
@@ -407,8 +409,10 @@ if os.path.exists(archivo_csv):
                     image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
                     imagenes.append(image_path)
                 elif area == 'Ensuciamiento':
-                    image_path = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path)
+                    image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_press_diff)
+                    image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_heat_coef)
                 elif area == 'Licor Verde':
                     figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                     imagenes.extend(figs_licor)
