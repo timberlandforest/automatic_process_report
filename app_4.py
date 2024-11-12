@@ -12,23 +12,50 @@ from io import BytesIO
 
 # Define process columns by area
 areas_de_proceso = {
-    'Combustion': ['Carga [TSS/d]','Solidos a quemado [%]','Temperatura del licor [°C]', 'Primario', 'Secundario', 'Secundario Alto',
-                   'Terciario', 'Cuaternario', 'Aire de combustión/ carga de licor [Nm3/kg DS]', 'Temperatura de gases de salida [°C]'],
-    'Vapor': ['Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 'Atemperacion [°C]'],
-    'Ensuciamiento': ['Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]',
-                     'heat_coef_SH1 [kJ/m2C]','heat_coef_SH2 [kJ/m2C]','heat_coef_SH3 [kJ/m2C]','heat_coef_SH4 [kJ/m2C]'],
-    'Licor Verde': ['reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'],
-    'Emisiones': ['NOx [mg/Nm³]','Material particulado [mg/Nm³]','SO2 [mg/Nm³]','TRS [mg/Nm³]','CO [mg/Nm³]','O2_cont_left [%]',
-                  'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+    'Combustion': [
+        'Carga [TSS/d]', 'Solidos a quemado [%]', 'Temperatura del licor [°C]', 
+        'Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario', 
+        'Aire de combustión/ carga de licor [Nm3/kg DS]', 'Temperatura de gases de salida [°C]'
+    ],
+    'Vapor': [
+        'Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 
+        'temp_vapor_pre_atemp1 [°C]', 'temp_vapor_sobrec_post_atemp1 [°C]', 
+        'temp_vapor_sobrec_post_atemp2 [°C]'
+    ],
+    'Ensuciamiento': [
+        'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 
+        'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]', 
+        'heat_coef_SH1 [kJ/m2C]', 'heat_coef_SH2 [kJ/m2C]', 
+        'heat_coef_SH3 [kJ/m2C]', 'heat_coef_SH4 [kJ/m2C]'
+    ],
+    'Licor Verde': [
+        'reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 
+        'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'
+    ],
+    'Emisiones': [
+        'NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 
+        'TRS [mg/Nm³]', 'CO [mg/Nm³]', 'O2_cont_left [%]', 
+        'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 
+        'CO_cont_center [%]', 'CO_cont_right_wall [%]'
+    ]
 }
 
 # Variables that should be grouped and not plotted individually
 omit_individual_plots = {
     'Combustion': ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario'],
-    'Ensuciamiento': ['Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 'Diff_Press_ECO2 [kPa]',
-                     'heat_coef_SH1 [kJ/m2C]','heat_coef_SH2 [kJ/m2C]','heat_coef_SH3 [kJ/m2C]'],
-    'Licor Verde': ['reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'],
-    'Emisiones': ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]']
+    'Ensuciamiento': [
+        'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]', 'Diff_Press_ECO1 [kPa]', 
+        'Diff_Press_ECO2 [kPa]', 'heat_coef_SH1 [kJ/m2C]', 
+        'heat_coef_SH2 [kJ/m2C]', 'heat_coef_SH3 [kJ/m2C]', 'heat_coef_SH4 [kJ/m2C]'
+    ],
+    'Licor Verde': [
+        'reduction_ins [%]', 'alcali_lv_ins [g/L]', 'sulfidez_ins [%]', 
+        'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'
+    ],
+    'Emisiones': [
+        'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]', 
+        'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]'
+    ]
 }
 
 # Helper function to sanitize file names
@@ -39,14 +66,16 @@ def sanitize_filename(name):
 def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
     limites = {}
     for columna in columnas:
-        if pd.api.types.is_numeric_dtype(df[columna]):
+        if column_exists(df, columna) and pd.api.types.is_numeric_dtype(df[columna]):
             limite_inferior = df[columna].quantile(percentil_inferior / 100)
             limite_superior = df[columna].quantile(percentil_superior / 100)
             limites[columna] = {
-                'limite_inferior': limite_inferior, 'limite_superior': limite_superior}
+                'limite_inferior': limite_inferior, 'limite_superior': limite_superior
+            }
         else:
             limites[columna] = {
-                'limite_inferior': None, 'limite_superior': None}
+                'limite_inferior': None, 'limite_superior': None
+            }
     return limites
 
 # Function to plot with Seaborn and Matplotlib (including moving averages and limits)
@@ -58,13 +87,19 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
+    # Skip variables that are in the omit_individual_plots for the current area
     columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
     for i in range(0, len(columnas), 2):
         plt.figure(figsize=(15, 5))
         for j, columna in enumerate(columnas[i:i+2]):
+            if not column_exists(df_hora, columna):
+                print(f"Warning: Column '{columna}' does not exist in the DataFrame and will be skipped.")
+                continue
+
             plt.subplot(1, 2, j + 1)
             sns.lineplot(x='ts', y=columna, data=df_hora, label=columna)
+
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
 
@@ -84,6 +119,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
         plt.savefig(image_path)
         image_paths.append(image_path)
         plt.close()
+
         st.image(image_path)
 
     return image_paths
@@ -181,11 +217,17 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
 def graficar_comparacion_licor_verde(df, tipo_grafico):
     figs_paths = []
     comparisons = [
-        ('reduction_lab [%]', 'reduction_i [%]', 'Reduction Comparison [%]'),
-        ('alcali_lv_lab [g/L]', 'alcali_lv_i [g/L]', 'Alcali Comparison [g/L]'),
-        ('sulfidez_lab [%]', 'sulfidez_i [%]', 'Sulfidez Comparison [%]')
+        ('reduction_lab [%]', 'reduction_ins [%]', 'Reduction Comparison [%]'),
+        ('alcali_lv_lab [g/L]', 'alcali_lv_ins [g/L]', 'Alcali Comparison [g/L]'),
+        ('sulfidez_lab [%]', 'sulfidez_ins [%]', 'Sulfidez Comparison [%]')
     ]
+
     for lab_var, inst_var, title in comparisons:
+        # Check if both columns exist
+        if not (column_exists(df, lab_var) and column_exists(df, inst_var)):
+            print(f"Warning: One or both columns '{lab_var}' or '{inst_var}' do not exist in the DataFrame. Skipping plot '{title}'.")
+            continue
+
         image_path = f"report_images/{sanitize_filename(title)}_Licor_Verde.png"
         if tipo_grafico == 'Plotly Express':
             fig = go.Figure()
@@ -211,6 +253,7 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             plt.tight_layout()
             plt.savefig(image_path)
             st.pyplot()
+
         figs_paths.append(image_path)
     return figs_paths
 
