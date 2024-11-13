@@ -89,7 +89,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    # Skip variables that are in the omit_individual_plots for the current area
+    # Exclude columns specified in `omit_individual_plots` for the current area
     columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
     for i in range(0, len(columnas), 2):
@@ -99,30 +99,34 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
                 print(f"Warning: Column '{columna}' does not exist in the DataFrame and will be skipped.")
                 continue
 
-            plt.subplot(1, 2, j + 1)
-            sns.lineplot(x='datetime', y=columna, data=df_hora, label=columna, linewidth = 2)
+            ax = plt.subplot(1, 2, j + 1)
+            sns.lineplot(x='datetime', y=columna, data=df_hora, label=columna, linewidth=2, ax=ax)
 
+            # Define the limits if they exist
             limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
             limite_superior = limites.get(columna, {}).get('limite_superior', None)
 
+            # Add horizontal lines for the limits
             if limite_inferior is not None:
-                plt.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
+                ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
             if limite_superior is not None:
-                plt.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
+                ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
-            plt.title(f'{columna}', fontsize = 12, fontweight='bold')
-            plt.grid(True)
-            plt.xlabel('Fecha', fontsize = 12, fontweight='bold')
-            plt.ylabel('Valor', fontsize = 12, fontweight='bold')
-            plt.legend(loc='upper left')
+            ax.set_title(f'{columna}', fontsize=12, fontweight='bold')
+            ax.grid(True)
+            ax.set_xlabel('Fecha', fontsize=12, fontweight='bold')
+            ax.set_ylabel('Valor', fontsize=12, fontweight='bold')
+            ax.legend(loc='upper left')
             plt.xticks(rotation=45)
-            plt.tight_layout()
+
+        plt.tight_layout(pad=2)  # Adding padding to prevent overlap between subplots
 
         image_path = f'report_images/{sanitize_filename("_".join(columnas[i:i+2]))}_{area}.png'
         plt.savefig(image_path)
         image_paths.append(image_path)
         plt.close()
 
+        # Display the image in Streamlit
         st.image(image_path)
 
     return image_paths
