@@ -344,7 +344,7 @@ def graficar_con_plotly(df, columnas, limites, area="General"):
                 st.warning(f"Column '{columna}' is missing in the data and will be skipped.")
                 continue
             
-            fig = px.line(df_hora, x='datetime', y=columna, labels={columna: columna}, title=f'{columna} ({area})')
+            fig = px.line(df_hora, x='datetime', y=columna, labels={columna: columna}, title=f'{columna}')
             fig.update_layout(
                 legend_title_text='',
                 legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
