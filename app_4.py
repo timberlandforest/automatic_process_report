@@ -144,7 +144,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig.write_image(image_path)
         st.plotly_chart(fig, use_container_width=True)
     else:
-        plt.figure(figsize=(14, 10))
+        plt.figure(figsize=(14, 8))
         for var in ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']:
             plt.plot(df['datetime'], df[var], label=var, linewidth = 0.7)
         plt.title("Air Distribution [%]", fontweight='bold')
