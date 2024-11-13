@@ -408,7 +408,6 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
 
 # Logo de la Empresa
 logo_url = "https://gestal.usm.cl/wp-content/uploads/2024/09/LOGO-ARAUCO.png"
-st.image(logo_url)
 
 # Markdown para centrar la imagen
 st.markdown(
