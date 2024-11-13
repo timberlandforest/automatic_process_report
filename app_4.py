@@ -410,6 +410,16 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
 logo_url = "https://gestal.usm.cl/wp-content/uploads/2024/09/LOGO-ARAUCO.png"
 st.image(logo_url)
 
+# Markdown para centrar la imagen
+st.markdown(
+    f"""
+    <div style="text-align: center;">
+        <img src="{logo_url}" width="300">
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 # Titulo de la APP
 st.title("Reporte Automatizado de Procesos")
 
