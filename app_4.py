@@ -405,7 +405,13 @@ def generar_reporte_html_y_pdf(imagenes_por_area):
         )
 
 # Streamlit App
-st.title("Reporte Procesos Automatizado")
+
+# Logo de la Empresa
+logo_url = "https://gestal.usm.cl/wp-content/uploads/2024/09/LOGO-ARAUCO.png"
+st.image(logo_url)
+
+# Titulo de la APP
+st.title("Reporte Automatizado de Procesos")
 
 archivo_csv = "data_caldera_opt_2.csv"
 if os.path.exists(archivo_csv):
