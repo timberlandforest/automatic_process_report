@@ -112,8 +112,8 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 
             plt.title(f'{columna}', fontweight='bold')
             plt.grid(True)
-            plt.xlabel('Fecha', fontsize = 12)
-            plt.ylabel('Valor', fontsize = 12)
+            plt.xlabel('Fecha', fontsize = 12, fontweight='bold')
+            plt.ylabel('Valor', fontsize = 12, fontweight='bold')
             plt.legend(loc='upper left')
             plt.xticks(rotation=45)
             plt.tight_layout()
