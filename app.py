@@ -301,9 +301,9 @@ def graficar_distribucion_aire(df, tipo_grafico):
         # Ajustar y guardar la imagen
         plt.tight_layout()
         plt.savefig(image_path)
-        plt.close(fig)  # Cierra la figura para liberar memoria
+        plt.close(fig) 
 
-        # Visualización híbrida: Matplotlib
+        # Visualización híbrida
         return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
