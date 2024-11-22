@@ -300,6 +300,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.savefig(image_path)
+        st.pyplot(fig)
         plt.close(fig)  # Close the figure to release memory
         return image_path
 
