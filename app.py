@@ -57,6 +57,37 @@ omit_individual_plots = {
     ]
 }
 
+# Límites para las variables por áreas de proceso
+
+limites_proceso = {
+    'Combustion': {
+        'Carga [TSS/d]': {'inferior': 5000, 'superior': 7000},
+        'Solidos a quemado [%]': {'inferior': 77, 'superior': 81},
+        'Temperatura LN a boquillas [°C]': {'inferior': 130, 'superior': 150},
+        'Aire de combustión/ carga de licor [Nm3/kg DS]': {'inferior': 3, 'superior': 4.5},
+        'Temperatura de gases de salida [°C]': {'superior': 213},
+    },
+    'Vapor': {
+        'Ratio flujo de vapor/ [Ton vap/kg DS]': {'inferior': 3.6, 'superior': 4.2},
+        'Temperatura de salida vapor [°C]': {'superior': 495},
+    },
+    'Ensuciamiento': {
+        'Soiling_rate_point': {'superior': 0.065},
+    },
+    'Licor Verde': {
+        'reduction_ins [%]': {'inferior': 88, 'superior': 98},
+        'alcali_lv_ins [g/L]': {'inferior': 152, 'superior': 178},
+        'sulfidez_ins [%]': {'inferior': 25, 'superior': 35},
+    },
+    'Emisiones': {
+        'NOx [mg/Nm³]': {'superior': 190},
+        'Material particulado [mg/Nm³]': {'superior': 20},
+        'SO2 [mg/Nm³]': {'superior': 35},
+        'TRS [mg/Nm³]': {'superior': 2},
+        'CO [mg/Nm³]': {'superior': 375},
+    }
+}
+
 # Helper function to sanitize file names
 
 def sanitize_filename(name):
@@ -69,61 +100,99 @@ def column_exists(df, column_name):
 
 # Function to calculate limits based on percentiles with column existence check
 
-def calcular_limites(df, columnas, percentil_inferior=5, percentil_superior=95):
+def calcular_limites(df, columnas, area=None, percentil_inferior=5, percentil_superior=95):
+    """
+    Calcula los límites utilizando los límites reales definidos en `limites_proceso`.
+    Si no existen límites definidos, calcula automáticamente los límites basados en percentiles.
+
+    Args:
+        df (pd.DataFrame): DataFrame con los datos.
+        columnas (list): Lista de columnas para calcular los límites.
+        area (str): Área del proceso para buscar límites reales en `limites_proceso`.
+        percentil_inferior (float): Percentil inferior para el cálculo automático (default=5).
+        percentil_superior (float): Percentil superior para el cálculo automático (default=95).
+
+    Returns:
+        dict: Diccionario con los límites para cada columna.
+    """
     limites = {}
+    limites_reales = limites_proceso.get(area, {}) if area else {}
+
     for columna in columnas:
+        # Verifica si la columna existe y tiene datos numéricos
         if column_exists(df, columna) and pd.api.types.is_numeric_dtype(df[columna]):
-            limite_inferior = df[columna].quantile(percentil_inferior / 100)
-            limite_superior = df[columna].quantile(percentil_superior / 100)
+            # Limpiar valores nulos
+            df_cleaned = df[columna].dropna()
+
+            # Obtener límites reales definidos
+            limite_real_inferior = limites_reales.get(columna, {}).get('inferior', None)
+            limite_real_superior = limites_reales.get(columna, {}).get('superior', None)
+
+            # Calcular límites automáticos si los reales no están definidos
+            if limite_real_inferior is None and limite_real_superior is None:
+                limite_inferior = df_cleaned.quantile(percentil_inferior / 100)
+                limite_superior = df_cleaned.quantile(percentil_superior / 100)
+            else:
+                limite_inferior = limite_real_inferior
+                limite_superior = limite_real_superior
+
+            # Guardar los límites en el diccionario
             limites[columna] = {
-                'limite_inferior': limite_inferior, 'limite_superior': limite_superior
+                'limite_inferior': limite_inferior,
+                'limite_superior': limite_superior
             }
         else:
+            # Si la columna no existe o no es numérica, dejar los límites como None
             limites[columna] = {
-                'limite_inferior': None, 'limite_superior': None
+                'limite_inferior': None,
+                'limite_superior': None
             }
+
     return limites
 
-
 # Function to plot with Seaborn and Matplotlib
+
 
 def graficar_con_seaborn(df, columnas, limites, area="General"):
     image_paths = []
     df['datetime'] = pd.to_datetime(df['datetime'])
-    df_hora = df.set_index('datetime').resample('H').mean().reset_index()
+    df_hora = df.set_index('datetime').resample('h').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    # Exclude columns specified in `omit_individual_plots` for the current area
-    columnas = [
-        col for col in columnas if col not in omit_individual_plots.get(area, [])]
+    # Excluir columnas agrupadas para evitar duplicados
+    columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
     for i in range(0, len(columnas), 2):
         fig, axs = plt.subplots(1, 2, figsize=(15, 5))
 
         for j, columna in enumerate(columnas[i:i+2]):
             if not column_exists(df_hora, columna):
-                print(
-                    f"Warning: Column '{columna}' does not exist in the DataFrame and will be skipped.")
+                print(f"Warning: Column '{columna}' does not exist in the DataFrame and will be skipped.")
                 continue
 
-            sns.lineplot(x='datetime', y=columna, data=df_hora,
-                         label=columna, linewidth=2, ax=axs[j])
+            sns.lineplot(x='datetime', y=columna, data=df_hora, label=columna, linewidth=2, ax=axs[j])
 
-            # Define the limits if they exist
-            limite_inferior = limites.get(
-                columna, {}).get('limite_inferior', None)
-            limite_superior = limites.get(
-                columna, {}).get('limite_superior', None)
+            # Obtener límites calculados o reales
+            limite_inferior = limites.get(columna, {}).get('limite_inferior', None)
+            limite_superior = limites.get(columna, {}).get('limite_superior', None)
 
-            # Add horizontal lines for the limits
+            print(f"Columna: {columna}, Límite inferior: {limite_inferior}, Límite superior: {limite_superior}")
+
+            # Ajustar rango del eje para incluir límites
+            min_y = min(df_hora[columna].min(), limite_inferior) if limite_inferior is not None else df_hora[columna].min()
+            max_y = max(df_hora[columna].max(), limite_superior) if limite_superior is not None else df_hora[columna].max()
+
+            # Expansión de márgenes para asegurar que los límites sean visibles
+            margin = 0.25 * abs(max_y - min_y)  # Margen del 10% del rango
+            axs[j].set_ylim(min_y - margin, max_y + margin)
+
+            # Añadir líneas horizontales para los límites si existen
             if limite_inferior is not None:
-                axs[j].axhline(y=limite_inferior, color='red',
-                               linestyle='--', label='Límite Inferior')
+                axs[j].axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
             if limite_superior is not None:
-                axs[j].axhline(y=limite_superior, color='green',
-                               linestyle='--', label='Límite Superior')
+                axs[j].axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
             axs[j].set_title(f'{columna}', fontsize=12, fontweight='bold')
             axs[j].set_xlabel('Fecha', fontsize=12, fontweight='bold')
@@ -131,18 +200,16 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
             axs[j].legend(loc='upper left')
             plt.setp(axs[j].get_xticklabels(), rotation=45)
 
-        # Remove empty subplot if there’s an odd number of columns
+        # Remover subplots vacíos si hay un número impar de columnas
         if len(columnas[i:i+2]) < 2:
             fig.delaxes(axs[1])
 
         plt.tight_layout(pad=2)
-
-        # Save and display the plot
         image_path = f'report_images/{sanitize_filename("_".join(columnas[i:i+2]))}_{area}.png'
         plt.savefig(image_path)
         image_paths.append(image_path)
-        st.pyplot(fig)  # Pass the figure explicitly
-        plt.close(fig)  # Close the figure after displaying
+        st.pyplot(fig)  # Mostrar figura explícitamente
+        plt.close(fig)
 
     return image_paths
 
@@ -273,7 +340,6 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
         for var in valid_columns:
             ax.plot(df['datetime'], df[var], label=var, linewidth=0.7)
         ax.set_title("Heat Coefficient Distribution [kJ/m2C]", fontsize=15, fontweight='bold')
-        ax.grid(True)
         ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left')
@@ -408,57 +474,37 @@ def graficar_contenido_monoxido(df, tipo_grafico):
 def graficar_con_plotly(df, columnas, limites, area="General"):
     image_paths = []
     df['datetime'] = pd.to_datetime(df['datetime'])
-    df_hora = df.set_index('datetime').resample('H').mean().reset_index()
+    df_hora = df.set_index('datetime').resample('h').mean().reset_index()
 
     if not os.path.exists('report_images'):
         os.makedirs('report_images')
 
-    # Skip variables that are in the omit_individual_plots for the current area
-    columnas = [
-        col for col in columnas if col not in omit_individual_plots.get(area, [])]
+    columnas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
-    for i in range(0, len(columnas), 2):
-        figs = []
-        for columna in columnas[i:i+2]:
-            # Check if the column exists in df_hora before plotting
-            if columna not in df_hora.columns:
-                st.warning(
-                    f"Column '{columna}' is missing in the data and will be skipped.")
-                continue
+    for columna in columnas:
+        if columna not in df_hora.columns:
+            st.warning(f"Column '{columna}' is missing in the data.")
+            continue
 
-            fig = px.line(df_hora, x='datetime', y=columna, labels={
-                          columna: columna}, title=f'{columna}')
-            fig.update_layout(
-                legend_title_text='',
-                legend=dict(yanchor="bottom", y=0.01,
-                            xanchor="left", x=0.01, font=dict(size=10))
-            )
+        fig = px.line(df_hora, x='datetime', y=columna, title=columna)
 
-            limite_inferior = limites.get(
-                columna, {}).get('limite_inferior', None)
-            limite_superior = limites.get(
-                columna, {}).get('limite_superior', None)
-            if limite_inferior is not None:
-                fig.add_hline(y=limite_inferior, line_dash="dash",
-                              line_color="red", annotation_text="Límite Inferior")
-            if limite_superior is not None:
-                fig.add_hline(y=limite_superior, line_dash="dash",
-                              line_color="green", annotation_text="Límite Superior")
+        limite_inferior = limites.get(columna, {}).get('limite_inferior')
+        limite_superior = limites.get(columna, {}).get('limite_superior')
 
-            image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
-            fig.write_image(image_path)
-            image_paths.append(image_path)
-            figs.append(fig)
+        if limite_inferior is not None:
+            fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
+        if limite_superior is not None:
+            fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
-        # Display plots in Streamlit if figures were created
-        if figs:
-            st.plotly_chart(figs[0], use_container_width=True)
-            if len(figs) > 1:
-                st.plotly_chart(figs[1], use_container_width=True)
+        image_path = f'report_images/{sanitize_filename(columna)}_{area}.png'
+        fig.write_image(image_path)
+        image_paths.append(image_path)
+        st.plotly_chart(fig, use_container_width=True)
 
     return image_paths
 
 # Function to generate the HTML and PDF report
+
 
 def generar_reporte_html_y_pdf(imagenes_por_area):
     logo_path = "docs/LOGO_ARAUCO.jpg"
@@ -564,7 +610,7 @@ add_bg_from_local("docs/MAPA_L3.jpg")
 # Logo de la Empresa
 logo_url = "https://gestal.usm.cl/wp-content/uploads/2024/09/LOGO-ARAUCO.png"
 
-# Markdown para centrar la imagen
+# Mostrar logo
 st.markdown(
     f"""
     <div style="text-align: center;">
@@ -574,110 +620,107 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Titulo de la APP
+# Título de la aplicación
 st.title("Reporte Automatizado de Procesos")
 
-archivo_csv = "data_caldera_2.csv"
+archivo_csv = "data_caldera.csv"
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
     df['datetime'] = pd.to_datetime(df['datetime'])
 
-    fecha_inicio, fecha_fin = st.date_input("Seleccionar fechas de inicio y fin",
-                                            value=(df['datetime'].min().date(), df['datetime'].max().date()))
-    fecha_inicio, fecha_fin = pd.to_datetime(
-        fecha_inicio), pd.to_datetime(fecha_fin)
-    df_filtrado = df[(df['datetime'] >= fecha_inicio)
-                     & (df['datetime'] <= fecha_fin)]
+    # Selección de fechas
+    fecha_inicio, fecha_fin = st.date_input(
+        "Seleccionar fechas de inicio y fin",
+        value=(df['datetime'].min().date(), df['datetime'].max().date())
+    )
+    fecha_inicio, fecha_fin = pd.to_datetime(fecha_inicio), pd.to_datetime(fecha_fin)
+    df_filtrado = df[(df['datetime'] >= fecha_inicio) & (df['datetime'] <= fecha_fin)]
 
-    tipo_reporte = st.radio(
-        "Seleccionar clase de informe", ('Por Area de Proceso', 'General'))
-    tipo_grafico = st.radio("Seleccionar tipo de visualización",
-                            ('Matplotlib/Seaborn', 'Plotly Express'))
+    # Selección del tipo de informe y gráficos
+    tipo_reporte = st.radio("Seleccionar clase de informe", ('Por Area de Proceso', 'General'))
+    tipo_grafico = st.radio("Seleccionar tipo de visualización", ('Matplotlib/Seaborn', 'Plotly Express'))
 
     if tipo_reporte == 'Por Area de Proceso':
-        area_seleccionada = st.selectbox(
-            "Seleccionar un área de proceso", list(areas_de_proceso.keys()))
+        area_seleccionada = st.selectbox("Seleccionar un área de proceso", list(areas_de_proceso.keys()))
         columnas_seleccionadas = areas_de_proceso[area_seleccionada]
 
         if st.button("Generar informe"):
-            limites_calculados = calcular_limites(
-                df_filtrado, columnas_seleccionadas)
+            limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas, area=area_seleccionada)
 
             if tipo_grafico == 'Matplotlib/Seaborn':
-                imagenes = graficar_con_seaborn(
-                    df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
+                imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
             else:
-                imagenes = graficar_con_plotly(
-                    df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
+                imagenes = graficar_con_plotly(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
 
-            # Agregar imágenes adicionales según el área seleccionada
+            # Agregar gráficos específicos según el área seleccionada
             if area_seleccionada == 'Combustion':
-                image_path = graficar_distribucion_aire(
-                    df_filtrado, tipo_grafico)
+                image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
                 imagenes.append(image_path)
             elif area_seleccionada == 'Ensuciamiento':
-                image_path_press_diff = graficar_diferencia_presion(
-                    df_filtrado, tipo_grafico)
+                image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
                 imagenes.append(image_path_press_diff)
-                image_path_heat_coef = graficar_distribucion_heat_coef(
-                    df_filtrado, tipo_grafico)
+                image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
                 imagenes.append(image_path_heat_coef)
             elif area_seleccionada == 'Licor Verde':
-                figs_licor = graficar_comparacion_licor_verde(
-                    df_filtrado, tipo_grafico)
+                figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                 imagenes.extend(figs_licor)
             elif area_seleccionada == 'Emisiones':
-                image_path_oxigeno = graficar_contenido_oxigeno(
-                    df_filtrado, tipo_grafico)
+                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
                 imagenes.append(image_path_oxigeno)
-                image_path_monoxido = graficar_contenido_monoxido(
-                    df_filtrado, tipo_grafico)
+                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
                 imagenes.append(image_path_monoxido)
 
+            # Generar informe
             imagenes_por_area = {area_seleccionada: imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
 
     elif tipo_reporte == 'General':
-        columnas_seleccionadas = [
-            col for cols in areas_de_proceso.values() for col in cols]
+        columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
 
         if st.button("Generar informe"):
-            limites_calculados = calcular_limites(
-                df_filtrado, columnas_seleccionadas)
-
-            if tipo_grafico == 'Matplotlib/Seaborn':
-                imagenes = graficar_con_seaborn(
-                    df_filtrado, columnas_seleccionadas, limites_calculados, "General")
-            else:
-                imagenes = graficar_con_plotly(
-                    df_filtrado, columnas_seleccionadas, limites_calculados, "General")
-
-            # Agregar imágenes adicionales para cada área en el informe general
+            imagenes = []
             for area, columnas in areas_de_proceso.items():
+                limites_calculados = calcular_limites(df_filtrado, columnas, area=area)
+
+                columnas_no_agrupadas = [
+                    col for col in columnas if col not in omit_individual_plots.get(area, [])
+                ]
+                if tipo_grafico == 'Matplotlib/Seaborn':
+                    imagenes.extend(
+                        graficar_con_seaborn(df_filtrado, columnas_no_agrupadas, limites_calculados, area)
+                    )
+                else:
+                    imagenes.extend(
+                        graficar_con_plotly(df_filtrado, columnas_no_agrupadas, limites_calculados, area)
+                    )
+
+                # Agregar gráficos específicos por área
                 if area == 'Combustion':
-                    image_path = graficar_distribucion_aire(
-                        df_filtrado, tipo_grafico)
+                    image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
                     imagenes.append(image_path)
                 elif area == 'Ensuciamiento':
-                    image_path_press_diff = graficar_diferencia_presion(
-                        df_filtrado, tipo_grafico)
+                    image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
                     imagenes.append(image_path_press_diff)
-                    image_path_heat_coef = graficar_distribucion_heat_coef(
-                        df_filtrado, tipo_grafico)
+                    image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
                     imagenes.append(image_path_heat_coef)
                 elif area == 'Licor Verde':
-                    figs_licor = graficar_comparacion_licor_verde(
-                        df_filtrado, tipo_grafico)
+                    figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                     imagenes.extend(figs_licor)
                 elif area == 'Emisiones':
-                    image_path_oxigeno = graficar_contenido_oxigeno(
-                        df_filtrado, tipo_grafico)
+                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
                     imagenes.append(image_path_oxigeno)
-                    image_path_monoxido = graficar_contenido_monoxido(
-                        df_filtrado, tipo_grafico)
+                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
                     imagenes.append(image_path_monoxido)
 
-            imagenes_por_area = {"General": imagenes}
+            # Crear informe general con gráficos por área
+            imagenes_por_area = {}
+            for area, columnas in areas_de_proceso.items():
+                imagenes_area = [
+                    img for img in imagenes if any(col in img for col in columnas)
+                ]
+                imagenes_por_area[area] = imagenes_area
+
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
+    
