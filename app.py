@@ -220,13 +220,35 @@ def graficar_distribucion_aire(df, tipo_grafico):
     limite_inferior = 0.14
     limite_superior = 0.28
 
+    # Colores individuales para cada curva
+    colores_individuales = {
+        'Primario': 'yellow',
+        'Secundario': 'green',
+        'Secundario Alto': 'salmon',
+        'Terciario': 'lightskyblue',
+        'Cuaternario': 'black',
+    }
+
+    # Obtener el valor máximo de la variable de control
+    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         for var in variables:
+            # Color de la curva basado en si alcanza el máximo
+            curve_color = [
+                'blue' if value == max_val else colores_individuales[var]
+                for value in df['Control APC Flujo aire a anillo cuaternario']
+            ]
             fig.add_trace(go.Scatter(
-                x=df['datetime'], y=df[var], mode='lines', name=var))
-        
+                x=df['datetime'],
+                y=df[var],
+                mode='lines',
+                name=var,
+                line=dict(color=colores_individuales[var])  # Default color
+            ))
+
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
@@ -238,13 +260,35 @@ def graficar_distribucion_aire(df, tipo_grafico):
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
         fig.write_image(image_path)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
+        return fig  # Return Plotly figure for further use
+
+    else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
+
+        leyendas_agregadas = set()
+
+        # Graficar las variables
         for var in variables:
-            ax.plot(df['datetime'], df[var], label=var, linewidth=0.7)
-        
+            for i in range(len(df) - 1):
+                x_segment = df['datetime'].iloc[i:i+2]
+                y_segment = df[var].iloc[i:i+2]
+                control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
+
+                # Cambiar el color si la variable de control alcanza su valor máximo
+                color = 'blue' if control_segment.max() == max_val else colores_individuales[var]
+
+                # Etiqueta para la leyenda
+                label = None
+                if color == 'blue' and 'APC ON' not in leyendas_agregadas:
+                    label = 'APC ON'
+                    leyendas_agregadas.add('APC ON')
+                elif color != 'blue' and var not in leyendas_agregadas:
+                    label = var
+                    leyendas_agregadas.add(var)
+
+                ax.plot(x_segment, y_segment, color=color, linewidth=0.7, label=label)
+
         # Agregar límites con líneas horizontales
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
         ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
@@ -252,13 +296,12 @@ def graficar_distribucion_aire(df, tipo_grafico):
         ax.set_title("Air Distribution [%]", fontsize=15, fontweight='bold')
         ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
-        ax.legend(loc='upper left')
+        ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
         plt.tight_layout()
         plt.savefig(image_path)
-        st.pyplot(fig)  # Pass the figure explicitly
-        plt.close(fig)
-    return image_path
+        plt.close(fig)  # Close the figure to release memory
+        return image_path
 
 
 def graficar_diferencia_presion(df, tipo_grafico):
