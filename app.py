@@ -216,7 +216,11 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 # Functions for extra visualizations
 
 def graficar_distribucion_aire(df, tipo_grafico):
+    # Ruta para guardar la imagen
+    os.makedirs("report_images", exist_ok=True)
     image_path = "report_images/Air_Distribution_Combustion.png"
+
+    # Límites de referencia
     limite_inferior = 0.14
     limite_superior = 0.28
 
@@ -236,17 +240,12 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         for var in variables:
-            # Color de la curva basado en si alcanza el máximo
-            curve_color = [
-                'blue' if value == max_val else colores_individuales[var]
-                for value in df['Control APC Flujo aire a anillo cuaternario']
-            ]
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df[var],
                 mode='lines',
                 name=var,
-                line=dict(color=colores_individuales[var])  # Default color
+                line=dict(color=colores_individuales[var])  # Colores individuales
             ))
 
         # Agregar límites con líneas horizontales
@@ -260,12 +259,11 @@ def graficar_distribucion_aire(df, tipo_grafico):
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
         fig.write_image(image_path)
-        return fig  # Return Plotly figure for further use
+        return fig  # Devuelve la figura para visualizar en Plotly
 
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
-
         leyendas_agregadas = set()
 
         # Graficar las variables
@@ -293,17 +291,20 @@ def graficar_distribucion_aire(df, tipo_grafico):
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
         ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
+        # Configurar título y etiquetas
         ax.set_title("Air Distribution [%]", fontsize=15, fontweight='bold')
         ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
+
+        # Ajustar y guardar la imagen
         plt.tight_layout()
         plt.savefig(image_path)
-        st.pyplot(fig)
-        plt.close(fig)  # Close the figure to release memory
-        return image_path
+        plt.close(fig)  # Cierra la figura para liberar memoria
 
+        # Visualización híbrida: Matplotlib
+        return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
