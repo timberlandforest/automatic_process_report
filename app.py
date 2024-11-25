@@ -150,6 +150,7 @@ def calcular_limites(df, columnas, area=None, percentil_inferior=5, percentil_su
 
     return limites
 
+
 # Function to plot with Seaborn and Matplotlib
 
 
@@ -230,18 +231,13 @@ def graficar_distribucion_aire(df, tipo_grafico):
         'Cuaternario': 'darkblue',
     }
 
-    # Valor máximo del APC
-    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Obtener el valor máximo de la variable de control
+    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
-
-        # Variable de control para la leyenda "APC ON"
-        apc_on_legend_added = False
-
         for var in variables:
-            # Graficar toda la curva
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df[var],
@@ -250,25 +246,10 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 line=dict(color=colores_individuales[var])
             ))
 
-            # Colorear las zonas donde el APC está encendido
-            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
-
-            if not df_apc_on.empty:
-                fig.add_trace(go.Scatter(
-                    x=df_apc_on['datetime'],
-                    y=df_apc_on[var],
-                    mode='lines',
-                    name="APC ON" if not apc_on_legend_added else None,
-                    line=dict(color='gold', width=3),
-                    showlegend=not apc_on_legend_added
-                ))
-                apc_on_legend_added = True
-
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
-        # Actualizar layout
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
@@ -276,24 +257,30 @@ def graficar_distribucion_aire(df, tipo_grafico):
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
         st.plotly_chart(fig, use_container_width=True)
-
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
-
-        # Control para evitar duplicar la leyenda "APC ON"
-        apc_on_legend_added = False
+        leyendas_agregadas = set()
 
         for var in variables:
-            # Graficar toda la curva con el color normal
-            ax.plot(df['datetime'], df[var], color=colores_individuales[var], label=var)
+            for i in range(len(df) - 1):
+                x_segment = df['datetime'].iloc[i:i+2]
+                y_segment = df[var].iloc[i:i+2]
+                control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
-            # Colorear las zonas donde el APC está encendido
-            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
-            if not df_apc_on.empty:
-                ax.plot(df_apc_on['datetime'], df_apc_on[var], color='gold', linewidth=2,
-                        label="APC ON" if not apc_on_legend_added else "")
-                apc_on_legend_added = True
+                # Cambiar el color si la variable de control alcanza su valor máximo
+                color = 'gold' if control_segment.max() == max_val else colores_individuales[var]
+
+                # Etiqueta para la leyenda
+                label = None
+                if color == 'gold' and 'APC ON' not in leyendas_agregadas:
+                    label = 'APC ON'
+                    leyendas_agregadas.add('APC ON')
+                elif color != 'gold' and var not in leyendas_agregadas:
+                    label = var
+                    leyendas_agregadas.add(var)
+
+                ax.plot(x_segment, y_segment, color=color, linewidth=0.7, label=label)
 
         # Agregar límites con líneas horizontales
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
@@ -305,11 +292,9 @@ def graficar_distribucion_aire(df, tipo_grafico):
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
-        plt.tight_layout()
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
-
     return image_path
 
 
