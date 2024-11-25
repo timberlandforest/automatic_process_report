@@ -472,90 +472,63 @@ def graficar_contenido_oxigeno(df, tipo_grafico):
     return image_path
 
 
-def graficar_emisiones_apc(df, tipo_grafico):
-    """
-    Genera gráficos individuales para cada característica de emisiones,
-    coloreando la curva en azul cuando el APC está encendido.
+def graficar_emisiones_apc(df, variable, tipo_grafico):
+    # Ruta para guardar la imagen
+    image_path = f"report_images/emisiones_{variable.replace(' ', '_').replace('[', '').replace(']', '').replace('/', '_').replace('°', '')}.png"
 
-    Args:
-        df (DataFrame): DataFrame filtrado con los datos relevantes.
-        tipo_grafico (str): 'Plotly Express' o 'Matplotlib/Seaborn'.
-    
-    Returns:
-        list: Lista de rutas de imágenes o figuras de Plotly generadas.
-    """
-    # Características de la subárea "Emisiones"
-    emisiones = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 
-                 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
-    max_apc = df['apc_fa_vp'].max()  # Valor máximo de APC para identificar cuando está encendido
-    imagenes = []
+    # Obtener el valor máximo de la variable de control
+    max_val = df['apc_fa_vp'].max()
 
     if tipo_grafico == 'Plotly Express':
-        for emision in emisiones:
-            fig = go.Figure()
-            # Agregar la curva coloreada dinámicamente
-            curve_color = [
-                'blue' if value == max_apc else 'black'
-                for value in df['apc_fa_vp']
-            ]
-            fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df[emision],
-                mode='lines',
-                name=emision,
-                line=dict(color='black')  # Color predeterminado
-            ))
+        fig = go.Figure()
 
-            # Configuración de límites y diseño
-            fig.update_layout(
-                title=f"Emisión: {emision}",
-                xaxis_title="Fecha",
-                yaxis_title="Concentración",
-                legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
-            )
-            imagenes.append(fig)
+        # Graficar la curva
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df[variable],
+            mode='lines',
+            name=variable,
+            line=dict(color='blue' if max_val in df['apc_fa_vp'].values else 'black')
+        ))
+
+        # Configurar título y etiquetas
+        fig.update_layout(
+            title=variable,
+            xaxis_title="Fecha",
+            yaxis_title=variable,
+            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+        )
+
+        # Mostrar en Streamlit y guardar la figura
+        st.plotly_chart(fig, use_container_width=True)
+        fig.write_image(image_path)
 
     else:  # Matplotlib
-        os.makedirs("report_images/emisiones", exist_ok=True)
-        for emision in emisiones:
-            fig, ax = plt.subplots(figsize=(14, 8))
-            leyendas_agregadas = set()
+        fig, ax = plt.subplots(figsize=(14, 8))
 
-            # Graficar la curva
-            for i in range(len(df) - 1):
-                x_segment = df['datetime'].iloc[i:i+2]
-                y_segment = df[emision].iloc[i:i+2]
-                apc_segment = df['apc_fa_vp'].iloc[i:i+2]
+        # Crear segmentos para cambiar el color dinámicamente
+        for i in range(len(df) - 1):
+            x_segment = df['datetime'].iloc[i:i+2]
+            y_segment = df[variable].iloc[i:i+2]
+            control_segment = df['apc_fa_vp'].iloc[i:i+2]
 
-                # Color azul si el APC está encendido
-                color = 'blue' if apc_segment.max() == max_apc else 'black'
+            # Cambiar el color si el APC está encendido
+            color = 'blue' if control_segment.max() == max_val else 'black'
+            ax.plot(x_segment, y_segment, color=color, linewidth=0.7)
 
-                # Etiqueta para la leyenda
-                label = None
-                if color == 'blue' and 'APC ON' not in leyendas_agregadas:
-                    label = 'APC ON'
-                    leyendas_agregadas.add('APC ON')
-                elif color == 'black' and emision not in leyendas_agregadas:
-                    label = emision
-                    leyendas_agregadas.add(emision)
+        # Configurar título y etiquetas
+        ax.set_title(variable, fontsize=15, fontweight='bold')
+        ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
+        ax.set_ylabel(variable, fontsize=15, fontweight='bold')
+        plt.xticks(rotation=45)
 
-                ax.plot(x_segment, y_segment, color=color, linewidth=0.7, label=label)
+        # Guardar y mostrar la imagen
+        plt.tight_layout()
+        plt.savefig(image_path)
+        st.pyplot(fig)
+        plt.close(fig)
 
-            # Configuración de la gráfica
-            ax.set_title(f"Emisión: {emision}", fontsize=15, fontweight='bold')
-            ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
-            ax.set_ylabel("Concentración", fontsize=15, fontweight='bold')
-            ax.legend(loc='upper left', fontsize=10)
-            plt.xticks(rotation=45)
-
-            # Guardar la imagen
-            image_path = f"report_images/emisiones/{emision.replace(' ', '_').replace('[', '').replace(']', '')}.png"
-            plt.tight_layout()
-            plt.savefig(image_path)
-            plt.close(fig)
-            imagenes.append(image_path)
-
-    return imagenes
+    return image_path
 
 
 def graficar_contenido_monoxido(df, tipo_grafico):
@@ -829,11 +802,17 @@ if os.path.exists(archivo_csv):
                     figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                     imagenes.extend(figs_licor)
                 elif area == 'Emisiones':
-                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_oxigeno)
-                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_monoxido)
-
+                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_oxigeno)
+                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_monoxido)
+    
+                # Visualizaciones individuales para variables de emisiones
+                emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
+                for variable in emissions_variables:
+                image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
+                imagenes.append(image_path)
+        
             # Crear informe general con gráficos por área
             imagenes_por_area = {}
             for area, columnas in areas_de_proceso.items():
