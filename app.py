@@ -223,11 +223,11 @@ def graficar_distribucion_aire(df, tipo_grafico):
 
     # Colores individuales para cada curva
     colores_individuales = {
-        'Primario': 'yellow',
-        'Secundario': 'green',
-        'Secundario Alto': 'salmon',
-        'Terciario': 'lightskyblue',
-        'Cuaternario': 'black',
+        'Primario': 'cyan',
+        'Secundario': 'lightblue',
+        'Secundario Alto': 'skyblue',
+        'Terciario': 'violet',
+        'Cuaternario': 'magenta',
     }
 
     # Obtener el valor máximo de la variable de control
