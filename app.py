@@ -232,12 +232,15 @@ def graficar_distribucion_aire(df, tipo_grafico):
     }
 
     # Obtener el valor máximo de la variable de control
-    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
+        apc_on_legend_added = False  # Control para agregar "APC ON" solo una vez
+
         for var in variables:
+            # Graficar la curva normal
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df[var],
@@ -246,17 +249,34 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 line=dict(color=colores_individuales[var])
             ))
 
+            # Graficar los segmentos donde el APC está encendido
+            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+            if not df_apc_on.empty:
+                fig.add_trace(go.Scatter(
+                    x=df_apc_on['datetime'],
+                    y=df_apc_on[var],
+                    mode='lines',
+                    name="APC ON" if not apc_on_legend_added else None,
+                    line=dict(color='gold', width=3),
+                    showlegend=not apc_on_legend_added
+                ))
+                apc_on_legend_added = True
+
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
+        # Configurar diseño
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
             yaxis_title="Valor",
-            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, font=dict(size=10)),
+            height=600
         )
+
         st.plotly_chart(fig, use_container_width=True)
+
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
@@ -269,7 +289,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
                 # Cambiar el color si la variable de control alcanza su valor máximo
-                color = 'gold' if control_segment.max() == max_val else colores_individuales[var]
+                color = 'gold' if control_segment.max() == max_apc else colores_individuales[var]
 
                 # Etiqueta para la leyenda
                 label = None
@@ -295,8 +315,8 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
-    return image_path
 
+    return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
