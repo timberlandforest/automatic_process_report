@@ -65,7 +65,7 @@ limites_proceso = {
         'Solidos a quemado [%]': {'inferior': 77, 'superior': 81},
         'Temperatura LN a boquillas [°C]': {'inferior': 130, 'superior': 150},
         'Aire de combustión/ carga de licor [Nm3/kg DS]': {'inferior': 3, 'superior': 4.5},
-        'Temperatura de gases de salida [°C]': {'superior': 213},
+        'Temperatura de gases de salida [°C]': {'superior': 160},
     },
     'Vapor': {
         'Ratio flujo de vapor/ [Ton vap/kg DS]': {'inferior': 3.6, 'superior': 4.2},
@@ -341,7 +341,6 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.close(fig)
     return image_path
 
-
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
     limite_inferior = 0.3
@@ -446,13 +445,20 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             print(f"Warning: One or both columns '{lab_var}' or '{inst_var}' do not exist in the DataFrame. Skipping plot '{title}'.")
             continue
 
+        # Filtrar datos mayores a 0 para ambas columnas
+        df_filtered = df[(df[lab_var] > 0) & (df[inst_var] > 0)]
+
+        if df_filtered.empty:
+            print(f"Warning: No data > 0 for '{lab_var}' or '{inst_var}' in '{title}'. Skipping plot.")
+            continue
+
         image_path = f"report_images/{sanitize_filename(title)}_Licor_Verde.png"
         if tipo_grafico == 'Plotly Express':
             fig = go.Figure()
             fig.add_trace(go.Scatter(
-                x=df['datetime'], y=df[lab_var], mode='lines', name=lab_var))
+                x=df_filtered['datetime'], y=df_filtered[lab_var], mode='lines', name=lab_var))
             fig.add_trace(go.Scatter(
-                x=df['datetime'], y=df[inst_var], mode='lines', name=inst_var))
+                x=df_filtered['datetime'], y=df_filtered[inst_var], mode='lines', name=inst_var))
             fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
             fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
             fig.update_layout(
@@ -465,8 +471,8 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             st.plotly_chart(fig, use_container_width=True)
         else:
             fig, ax = plt.subplots(figsize=(14, 8))
-            ax.plot(df['datetime'], df[lab_var], label=lab_var, linewidth=0.7)
-            ax.plot(df['datetime'], df[inst_var], label=inst_var, linewidth=0.7)
+            ax.plot(df_filtered['datetime'], df_filtered[lab_var], label=lab_var, linewidth=0.7)
+            ax.plot(df_filtered['datetime'], df_filtered[inst_var], label=inst_var, linewidth=0.7)
             # Añadir líneas horizontales para los límites
             ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
             ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
@@ -881,4 +887,4 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
-    
+   
