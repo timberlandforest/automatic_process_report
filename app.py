@@ -475,7 +475,7 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
     image_path = f"report_images/emisiones_{variable.replace(' ', '_').replace('[', '').replace(']', '').replace('/', '_').replace('°', '')}.png"
 
     # Obtener el valor máximo de la variable de control
-    max_val = df['apc_fa_vp'].max()
+    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
@@ -486,7 +486,7 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
             y=df[variable],
             mode='lines',
             name=variable,
-            line=dict(color='blue' if max_val in df['apc_fa_vp'].values else 'black')
+            line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'black')
         ))
 
         # Configurar título y etiquetas
@@ -508,7 +508,7 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
         for i in range(len(df) - 1):
             x_segment = df['datetime'].iloc[i:i+2]
             y_segment = df[variable].iloc[i:i+2]
-            control_segment = df['apc_fa_vp'].iloc[i:i+2]
+            control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
             # Cambiar el color si el APC está encendido
             color = 'blue' if control_segment.max() == max_val else 'black'
