@@ -465,7 +465,7 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
                 y=df[variable],
                 mode='lines',
                 name=variable,
-                line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'black')
+                line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'lightgreen')
             ))
         else:
             fig.add_trace(go.Scatter(
@@ -505,10 +505,10 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
                 # Cambiar el color si el APC está encendido
-                color = 'blue' if control_segment.max() == max_val else 'black'
+                color = 'blue' if control_segment.max() == max_val else 'lightgreen'
                 ax.plot(x_segment, y_segment, color=color, linewidth=0.7)
         else:
-            ax.plot(df['datetime'], df[variable], color='black', linewidth=0.7)
+            ax.plot(df['datetime'], df[variable], color='lightgreen', linewidth=0.7)
 
         # Añadir líneas horizontales para los límites
         if limite_inferior is not None:
