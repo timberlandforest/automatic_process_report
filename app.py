@@ -230,52 +230,36 @@ def graficar_distribucion_aire(df, tipo_grafico):
         'Cuaternario': 'darkblue',
     }
 
-    # Obtener el valor máximo de la variable de control APC
-    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Valor máximo del APC
+    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
-        apc_legend_added = False
 
         for var in variables:
-            # Identificar las zonas con APC encendido
-            df[f'{var}_color'] = df['Control APC Flujo aire a anillo cuaternario'].apply(
-                lambda x: 'gold' if x == max_val else colores_individuales[var]
-            )
-            
-            # Graficar la curva principal con colores dinámicos
+            # Filtrar datos donde el APC está encendido (alcanzando su valor máximo)
+            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+            df_apc_off = df[df['Control APC Flujo aire a anillo cuaternario'] != max_apc]
+
+            # Graficar las partes con APC apagado
             fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df[var],
+                x=df_apc_off['datetime'],
+                y=df_apc_off[var],
                 mode='lines',
                 name=var,
-                line=dict(color=colores_individuales[var]),
-                legendgroup=var
+                line=dict(color=colores_individuales[var])
             ))
 
-            # Añadir tramos de APC ON
-            if not apc_legend_added:
-                fig.add_trace(go.Scatter(
-                    x=df.loc[df['Control APC Flujo aire a anillo cuaternario'] == max_val, 'datetime'],
-                    y=df.loc[df['Control APC Flujo aire a anillo cuaternario'] == max_val, var],
-                    mode='lines',
-                    line=dict(color='gold', width=3),
-                    name='APC ON',
-                    legendgroup='APC ON',
-                    showlegend=True
-                ))
-                apc_legend_added = True
-            else:
-                fig.add_trace(go.Scatter(
-                    x=df.loc[df['Control APC Flujo aire a anillo cuaternario'] == max_val, 'datetime'],
-                    y=df.loc[df['Control APC Flujo aire a anillo cuaternario'] == max_val, var],
-                    mode='lines',
-                    line=dict(color='gold', width=3),
-                    name='APC ON',
-                    legendgroup='APC ON',
-                    showlegend=False
-                ))
+            # Graficar las partes con APC encendido
+            fig.add_trace(go.Scatter(
+                x=df_apc_on['datetime'],
+                y=df_apc_on[var],
+                mode='lines',
+                name=f"{var} (APC ON)",
+                line=dict(color='gold', width=3),
+                showlegend=True
+            ))
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
@@ -293,21 +277,19 @@ def graficar_distribucion_aire(df, tipo_grafico):
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
-        leyendas_agregadas = set()
 
         for var in variables:
-            apc_on_segments = df[df['Control APC Flujo aire a anillo cuaternario'] == max_val]
-            no_apc_segments = df[df['Control APC Flujo aire a anillo cuaternario'] != max_val]
+            # Filtrar datos donde el APC está encendido (alcanzando su valor máximo)
+            apc_on_segments = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+            apc_off_segments = df[df['Control APC Flujo aire a anillo cuaternario'] != max_apc]
 
             # Graficar las partes con APC apagado
-            ax.plot(no_apc_segments['datetime'], no_apc_segments[var],
-                    color=colores_individuales[var], label=var if var not in leyendas_agregadas else "")
-            leyendas_agregadas.add(var)
+            ax.plot(apc_off_segments['datetime'], apc_off_segments[var],
+                    color=colores_individuales[var], label=var)
 
             # Graficar las partes con APC encendido
             ax.plot(apc_on_segments['datetime'], apc_on_segments[var],
-                    color='gold', label='APC ON' if 'APC ON' not in leyendas_agregadas else "")
-            leyendas_agregadas.add('APC ON')
+                    color='gold', linewidth=2, label=f"{var} (APC ON)")
 
         # Agregar límites con líneas horizontales
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
