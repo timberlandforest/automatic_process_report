@@ -240,16 +240,16 @@ def graficar_distribucion_aire(df, tipo_grafico):
         apc_on_legend_added = False  # Control para agregar "APC ON" solo una vez
 
         for var in variables:
-            # Graficar la curva normal
+            # Graficar la curva completa en su color original
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df[var],
                 mode='lines',
                 name=var,
-                line=dict(color=colores_individuales[var])
+                line=dict(color=colores_individuales[var], width=2)
             ))
 
-            # Graficar los segmentos donde el APC está encendido
+            # Graficar solo los segmentos donde el APC está encendido (máximo)
             df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
             if not df_apc_on.empty:
                 fig.add_trace(go.Scatter(
@@ -257,10 +257,10 @@ def graficar_distribucion_aire(df, tipo_grafico):
                     y=df_apc_on[var],
                     mode='lines',
                     name="APC ON" if not apc_on_legend_added else None,
-                    line=dict(color='gold', width=3),
+                    line=dict(color='gold', width=4),  # Segmentos APC ON más gruesos y dorados
                     showlegend=not apc_on_legend_added
                 ))
-                apc_on_legend_added = True
+                apc_on_legend_added = True  # Leyenda agregada solo una vez
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
