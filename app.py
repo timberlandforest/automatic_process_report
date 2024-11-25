@@ -461,63 +461,66 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
     return figs_paths
 
 
-def graficar_emisiones_apc(df, variable, tipo_grafico):
-    # Ruta para guardar la imagen
-    image_path = f"report_images/emisiones_{variable.replace(' ', '_').replace('[', '').replace(']', '').replace('/', '_').replace('°', '')}.png"
+def graficar_distribucion_aire(df, tipo_grafico):
+    image_path = "report_images/distribucion_aire.png"
+    # Límites de referencia
+    limite_inferior = 0.14
+    limite_superior = 0.28
 
-    # Validar si la columna `Control APC Flujo aire a anillo cuaternario` existe
-    if 'Control APC Flujo aire a anillo cuaternario' not in df.columns:
-        st.warning(f"La columna 'Control APC Flujo aire a anillo cuaternario' no está disponible. Generando la gráfica sin información del APC.")
-        apc_available = False
-    else:
-        apc_available = True
-        max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Colores individuales para cada curva
+    colores_individuales = {
+        'Primario': 'cyan',
+        'Secundario': 'deepskyblue',
+        'Secundario Alto': 'cornflowerblue',
+        'Terciario': 'blueviolet',
+        'Cuaternario': 'darkblue',
+    }
 
-    # Obtener límites de la variable
-    limite_inferior = limites_proceso['Emisiones'].get(variable, {}).get('inferior', None)
-    limite_superior = limites_proceso['Emisiones'].get(variable, {}).get('superior', None)
+    # Obtener el valor máximo de la variable de control
+    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
+        variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
+        apc_on_legend_added = False  # Control para agregar "APC ON" solo una vez
 
-        # Graficar la curva principal
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=df[variable],
-            mode='lines',
-            name=variable,
-            line=dict(color='lightgreen')
-        ))
+        for var in variables:
+            # Graficar la curva completa en su color original
+            fig.add_trace(go.Scatter(
+                x=df['datetime'],
+                y=df[var],
+                mode='lines',
+                name=var,
+                line=dict(color=colores_individuales[var], width=2)
+            ))
 
-        # Agregar regiones de APC encendido
-        if apc_available:
-            for i in range(len(df) - 1):
-                if df['Control APC Flujo aire a anillo cuaternario'].iloc[i] == max_val:
-                    fig.add_trace(go.Scatter(
-                        x=df['datetime'].iloc[i:i+2],
-                        y=df[variable].iloc[i:i+2],
-                        mode='lines',
-                        line=dict(color='blue'),
-                        showlegend=False  # Ocultar leyenda para estas líneas
-                    ))
+            # Graficar solo los segmentos donde el APC está encendido (máximo)
+            apc_on_segments = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+            if not apc_on_segments.empty:
+                fig.add_trace(go.Scatter(
+                    x=apc_on_segments['datetime'],
+                    y=apc_on_segments[var],
+                    mode='lines',
+                    name="APC ON" if not apc_on_legend_added else None,
+                    line=dict(color='gold', width=4),  # Segmentos APC ON más gruesos y dorados
+                    showlegend=not apc_on_legend_added
+                ))
+                apc_on_legend_added = True  # Leyenda agregada solo una vez
 
-        # Agregar límites
-        if limite_inferior is not None:
-            fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
-        if limite_superior is not None:
-            fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
+        # Agregar límites con líneas horizontales
+        fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
+        fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
-        # Configurar título y etiquetas
+        # Configurar diseño
         fig.update_layout(
-            title=variable,
+            title="Air Distribution [%]",
             xaxis_title="Fecha",
-            yaxis_title=variable,
-            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+            yaxis_title="Valor",
+            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, font=dict(size=10)),
+            height=600
         )
 
-        # Mostrar en Streamlit y guardar la figura
         st.plotly_chart(fig, use_container_width=True)
-        fig.write_image(image_path)
 
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
