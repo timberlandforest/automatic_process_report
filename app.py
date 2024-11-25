@@ -32,7 +32,8 @@ areas_de_proceso = {
         'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'
     ],
     'Emisiones': [
-        , 'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]',
+        'NOx [mg/Nm³]', 'Material particulado [mg/Nm³]',  'SO2 [mg/Nm³]', 'TRS [mg/Nm³]',
+        'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]',
         'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]'
     ]
 }
@@ -50,7 +51,6 @@ omit_individual_plots = {
         'reduction_lab [%]', 'alcali_lv_lab [g/L]', 'sulfidez_lab [%]'
     ],
     'Emisiones': [
-        'NOx [mg/Nm³]', 'Material particulado [mg/Nm³]',  'SO2 [mg/Nm³]', 'TRS [mg/Nm³]',
         'CO [mg/Nm³]', 'O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]',
         'CO_cont_left_wall [%]', 'CO_cont_center [%]', 'CO_cont_right_wall [%]'
     ]
