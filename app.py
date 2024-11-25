@@ -865,12 +865,12 @@ if os.path.exists(archivo_csv):
     # Crear informe general con gráficos por área
     imagenes_por_area = {}
     for area, columnas in areas_de_proceso.items():
-    imagenes_area = [
-        img for img in imagenes if any(col in img for col in columnas)
-    ]
-    imagenes_por_area[area] = imagenes_area
+        imagenes_area = [
+            img for img in imagenes if any(col in img for col in columnas)
+        ]
+        imagenes_por_area[area] = imagenes_area
 
     generar_reporte_html_y_pdf(imagenes_por_area)
     else:
-    st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
+        st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
        
