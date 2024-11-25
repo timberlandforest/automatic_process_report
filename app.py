@@ -237,29 +237,32 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
 
-        for var in variables:
-            # Filtrar datos donde el APC está encendido (alcanzando su valor máximo)
-            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
-            df_apc_off = df[df['Control APC Flujo aire a anillo cuaternario'] != max_apc]
+        # Variable de control para la leyenda "APC ON"
+        apc_on_legend_added = False
 
-            # Graficar las partes con APC apagado
+        for var in variables:
+            # Graficar toda la curva
             fig.add_trace(go.Scatter(
-                x=df_apc_off['datetime'],
-                y=df_apc_off[var],
+                x=df['datetime'],
+                y=df[var],
                 mode='lines',
                 name=var,
                 line=dict(color=colores_individuales[var])
             ))
 
-            # Graficar las partes con APC encendido
-            fig.add_trace(go.Scatter(
-                x=df_apc_on['datetime'],
-                y=df_apc_on[var],
-                mode='lines',
-                name=f"{var} (APC ON)",
-                line=dict(color='gold', width=3),
-                showlegend=True
-            ))
+            # Colorear las zonas donde el APC está encendido
+            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+
+            if not df_apc_on.empty:
+                fig.add_trace(go.Scatter(
+                    x=df_apc_on['datetime'],
+                    y=df_apc_on[var],
+                    mode='lines',
+                    name="APC ON" if not apc_on_legend_added else None,
+                    line=dict(color='gold', width=3),
+                    showlegend=not apc_on_legend_added
+                ))
+                apc_on_legend_added = True
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
@@ -278,18 +281,19 @@ def graficar_distribucion_aire(df, tipo_grafico):
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
 
+        # Control para evitar duplicar la leyenda "APC ON"
+        apc_on_legend_added = False
+
         for var in variables:
-            # Filtrar datos donde el APC está encendido (alcanzando su valor máximo)
-            apc_on_segments = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
-            apc_off_segments = df[df['Control APC Flujo aire a anillo cuaternario'] != max_apc]
+            # Graficar toda la curva con el color normal
+            ax.plot(df['datetime'], df[var], color=colores_individuales[var], label=var)
 
-            # Graficar las partes con APC apagado
-            ax.plot(apc_off_segments['datetime'], apc_off_segments[var],
-                    color=colores_individuales[var], label=var)
-
-            # Graficar las partes con APC encendido
-            ax.plot(apc_on_segments['datetime'], apc_on_segments[var],
-                    color='gold', linewidth=2, label=f"{var} (APC ON)")
+            # Colorear las zonas donde el APC está encendido
+            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
+            if not df_apc_on.empty:
+                ax.plot(df_apc_on['datetime'], df_apc_on[var], color='gold', linewidth=2,
+                        label="APC ON" if not apc_on_legend_added else "")
+                apc_on_legend_added = True
 
         # Agregar límites con líneas horizontales
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
@@ -301,6 +305,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
+        plt.tight_layout()
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
