@@ -224,10 +224,10 @@ def graficar_distribucion_aire(df, tipo_grafico):
     # Colores individuales para cada curva
     colores_individuales = {
         'Primario': 'cyan',
-        'Secundario': 'lightblue',
-        'Secundario Alto': 'skyblue',
-        'Terciario': 'violet',
-        'Cuaternario': 'magenta',
+        'Secundario': 'deepskyblue',
+        'Secundario Alto': 'cornflowerblue',
+        'Terciario': 'blueviolet',
+        'Cuaternario': 'darkblue',
     }
 
     # Obtener el valor máximo de la variable de control
@@ -268,14 +268,14 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
                 # Cambiar el color si la variable de control alcanza su valor máximo
-                color = 'blue' if control_segment.max() == max_val else colores_individuales[var]
+                color = 'gold' if control_segment.max() == max_val else colores_individuales[var]
 
                 # Etiqueta para la leyenda
                 label = None
-                if color == 'blue' and 'APC ON' not in leyendas_agregadas:
+                if color == 'gold' and 'APC ON' not in leyendas_agregadas:
                     label = 'APC ON'
                     leyendas_agregadas.add('APC ON')
-                elif color != 'blue' and var not in leyendas_agregadas:
+                elif color != 'gold' and var not in leyendas_agregadas:
                     label = var
                     leyendas_agregadas.add(var)
 
