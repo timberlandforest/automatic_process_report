@@ -475,20 +475,44 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
     # Ruta para guardar la imagen
     image_path = f"report_images/emisiones_{variable.replace(' ', '_').replace('[', '').replace(']', '').replace('/', '_').replace('°', '')}.png"
 
-    # Obtener el valor máximo de la variable de control
-    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Validar si la columna `Control APC Flujo aire a anillo cuaternario` existe
+    if 'Control APC Flujo aire a anillo cuaternario' not in df.columns:
+        st.warning(f"La columna 'Control APC Flujo aire a anillo cuaternario' no está disponible. Generando la gráfica sin información del APC.")
+        apc_available = False
+    else:
+        apc_available = True
+        max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+
+    # Obtener límites de la variable
+    limite_inferior = limites_proceso['Emisiones'].get(variable, {}).get('inferior', None)
+    limite_superior = limites_proceso['Emisiones'].get(variable, {}).get('superior', None)
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
 
         # Graficar la curva
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=df[variable],
-            mode='lines',
-            name=variable,
-            line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'black')
-        ))
+        if apc_available:
+            fig.add_trace(go.Scatter(
+                x=df['datetime'],
+                y=df[variable],
+                mode='lines',
+                name=variable,
+                line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'black')
+            ))
+        else:
+            fig.add_trace(go.Scatter(
+                x=df['datetime'],
+                y=df[variable],
+                mode='lines',
+                name=variable,
+                line=dict(color='black')  # Color estándar si el APC no está disponible
+            ))
+
+        # Agregar límites
+        if limite_inferior is not None:
+            fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
+        if limite_superior is not None:
+            fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
         # Configurar título y etiquetas
         fig.update_layout(
@@ -506,19 +530,29 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
         fig, ax = plt.subplots(figsize=(14, 8))
 
         # Crear segmentos para cambiar el color dinámicamente
-        for i in range(len(df) - 1):
-            x_segment = df['datetime'].iloc[i:i+2]
-            y_segment = df[variable].iloc[i:i+2]
-            control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
+        if apc_available:
+            for i in range(len(df) - 1):
+                x_segment = df['datetime'].iloc[i:i+2]
+                y_segment = df[variable].iloc[i:i+2]
+                control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
-            # Cambiar el color si el APC está encendido
-            color = 'blue' if control_segment.max() == max_val else 'black'
-            ax.plot(x_segment, y_segment, color=color, linewidth=0.7)
+                # Cambiar el color si el APC está encendido
+                color = 'blue' if control_segment.max() == max_val else 'black'
+                ax.plot(x_segment, y_segment, color=color, linewidth=0.7)
+        else:
+            ax.plot(df['datetime'], df[variable], color='black', linewidth=0.7)
+
+        # Añadir líneas horizontales para los límites
+        if limite_inferior is not None:
+            ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
+        if limite_superior is not None:
+            ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
 
         # Configurar título y etiquetas
         ax.set_title(variable, fontsize=15, fontweight='bold')
         ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
         ax.set_ylabel(variable, fontsize=15, fontweight='bold')
+        ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
 
         # Guardar y mostrar la imagen
