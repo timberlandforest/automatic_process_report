@@ -230,47 +230,42 @@ def graficar_distribucion_aire(df, tipo_grafico):
         'Cuaternario': 'darkblue',
     }
 
-    # Obtener el valor máximo de la variable de control
+    # Obtener el valor máximo de la variable de control APC
     max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         
-        # Agregar las curvas de las variables principales
         for var in variables:
-            fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df[var],
-                mode='lines',
-                name=var,
-                line=dict(color=colores_individuales[var])
-            ))
-
-        # Agregar curva para el estado del APC
-        fig.add_trace(go.Scatter(
-            x=df['datetime'],
-            y=[max_val if val == max_val else None for val in df['Control APC Flujo aire a anillo cuaternario']],
-            mode='lines',
-            name='APC ON',
-            line=dict(color='gold', width=3, dash='dot')
-        ))
+            # Crear una columna temporal para colorear dinámicamente
+            df[f'{var}_color'] = df.apply(
+                lambda row: 'gold' if row['Control APC Flujo aire a anillo cuaternario'] == max_val else colores_individuales[var],
+                axis=1
+            )
+            
+            # Agregar la curva al gráfico con colores dinámicos
+            for i in range(len(df) - 1):
+                fig.add_trace(go.Scatter(
+                    x=df['datetime'].iloc[i:i+2],
+                    y=df[var].iloc[i:i+2],
+                    mode='lines',
+                    name=var if i == 0 else None,  # Solo añadir el nombre en la primera iteración
+                    line=dict(color=df[f'{var}_color'].iloc[i])
+                ))
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
-        # Configurar diseño del gráfico
+        # Actualizar layout
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
-
-        # Mostrar en Streamlit y guardar la imagen
         st.plotly_chart(fig, use_container_width=True)
-        fig.write_image(image_path)
 
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
@@ -283,7 +278,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 y_segment = df[var].iloc[i:i+2]
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
-                # Cambiar el color si la variable de control alcanza su valor máximo
+                # Cambiar el color dinámicamente si el APC está encendido
                 color = 'gold' if control_segment.max() == max_val else colores_individuales[var]
 
                 # Etiqueta para la leyenda
