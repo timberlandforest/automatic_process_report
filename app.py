@@ -439,38 +439,6 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
     return figs_paths
 
 
-def graficar_contenido_oxigeno(df, tipo_grafico):
-    image_path = "report_images/O2_Content_Emisiones.png"
-    if tipo_grafico == 'Plotly Express':
-        fig = go.Figure()
-        variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
-        for var in variables:
-            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
-        fig.update_layout(
-            title="O2 Content [%]",
-            xaxis_title="Fecha",
-            yaxis_title="Valor",
-            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
-        )
-        fig.write_image(image_path)
-        st.plotly_chart(fig, use_container_width=True)
-    else:
-        fig, ax = plt.subplots(figsize=(14, 8))  # Asignar a `fig` y `ax`
-        variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
-        for var in variables:
-            ax.plot(df['datetime'], df[var], label=var, linewidth=0.7)
-        ax.set_title("O2 Content [%]", fontsize=15, fontweight='bold')
-        ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
-        ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
-        ax.legend(loc='upper left')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-        plt.savefig(image_path)
-        st.pyplot(fig)  # Pasar `fig` explícitamente
-        plt.close(fig)  # Cerrar correctamente el objeto `fig`
-    return image_path
-
-
 def graficar_emisiones_apc(df, variable, tipo_grafico):
     # Ruta para guardar la imagen
     image_path = f"report_images/emisiones_{variable.replace(' ', '_').replace('[', '').replace(']', '').replace('/', '_').replace('°', '')}.png"
@@ -563,6 +531,36 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
 
     return image_path
 
+def graficar_contenido_oxigeno(df, tipo_grafico):
+    image_path = "report_images/O2_Content_Emisiones.png"
+    if tipo_grafico == 'Plotly Express':
+        fig = go.Figure()
+        variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
+        for var in variables:
+            fig.add_trace(go.Scatter(x=df['datetime'], y=df[var], mode='lines', name=var))
+        fig.update_layout(
+            title="O2 Content [%]",
+            xaxis_title="Fecha",
+            yaxis_title="Valor",
+            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+        )
+        fig.write_image(image_path)
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        fig, ax = plt.subplots(figsize=(14, 8))  # Asignar a `fig` y `ax`
+        variables = ['O2_cont_left [%]', 'O2_cont_center [%]', 'O2_cont_right [%]']
+        for var in variables:
+            ax.plot(df['datetime'], df[var], label=var, linewidth=0.7)
+        ax.set_title("O2 Content [%]", fontsize=15, fontweight='bold')
+        ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
+        ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
+        ax.legend(loc='upper left')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        plt.savefig(image_path)
+        st.pyplot(fig)  # Pasar `fig` explícitamente
+        plt.close(fig)  # Cerrar correctamente el objeto `fig`
+    return image_path
 
 def graficar_contenido_monoxido(df, tipo_grafico):
     image_path = "report_images/CO_Content_Emisiones.png"
@@ -793,12 +791,7 @@ if os.path.exists(archivo_csv):
                 figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                 imagenes.extend(figs_licor)
             elif area_seleccionada == 'Emisiones':
-                # Visualizaciones existentes para "Emisiones"
-                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_oxigeno)
-                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_monoxido)
-
+                
                 # Visualizaciones individuales para variables de emisiones
                 emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
                 for variable in emissions_variables:
@@ -807,6 +800,12 @@ if os.path.exists(archivo_csv):
                         imagenes.append(image_path)
                     except Exception as e:
                         st.error(f"No se pudo generar la gráfica para {variable}: {e}")
+            
+                # Visualizaciones existentes para "Emisiones"
+                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_oxigeno)
+                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                imagenes.append(image_path_monoxido)
 
 
             # Generar informe
@@ -846,11 +845,7 @@ if os.path.exists(archivo_csv):
                     figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                     imagenes.extend(figs_licor)
                 elif area == 'Emisiones':
-                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_oxigeno)
-                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_monoxido)
-
+                    
                 # Generar gráficos individuales para emisiones
                 emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
                 for variable in emissions_variables:
@@ -859,7 +854,11 @@ if os.path.exists(archivo_csv):
                         imagenes.append(image_path)
                     except Exception as e:
                         st.error(f"No se pudo generar la gráfica para {variable}: {e}")
-
+                        
+                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_oxigeno)
+                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_monoxido)
         
             # Crear informe general con gráficos por área
             imagenes_por_area = {}
