@@ -291,9 +291,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-
-    return image_path
-        
+  
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
