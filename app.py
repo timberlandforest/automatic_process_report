@@ -458,23 +458,26 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
 
-        # Graficar la curva
+        # Graficar la curva principal
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=df[variable],
+            mode='lines',
+            name=variable,
+            line=dict(color='lightgreen')
+        ))
+
+        # Agregar regiones de APC encendido
         if apc_available:
-            fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df[variable],
-                mode='lines',
-                name=variable,
-                line=dict(color='blue' if max_val in df['Control APC Flujo aire a anillo cuaternario'].values else 'lightgreen')
-            ))
-        else:
-            fig.add_trace(go.Scatter(
-                x=df['datetime'],
-                y=df[variable],
-                mode='lines',
-                name=variable,
-                line=dict(color='lightgreen')  # Color estándar si el APC no está disponible
-            ))
+            for i in range(len(df) - 1):
+                if df['Control APC Flujo aire a anillo cuaternario'].iloc[i] == max_val:
+                    fig.add_trace(go.Scatter(
+                        x=df['datetime'].iloc[i:i+2],
+                        y=df[variable].iloc[i:i+2],
+                        mode='lines',
+                        line=dict(color='blue'),
+                        showlegend=False  # Ocultar leyenda para estas líneas
+                    ))
 
         # Agregar límites
         if limite_inferior is not None:
