@@ -281,7 +281,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                     y=df.iloc[segment][var],
                     mode='lines',
                     name="APC ON" if not apc_on_legend_added else None,
-                    line=dict(color='gold', width=4),
+                    line=dict(color='gold', width=2),
                     showlegend=not apc_on_legend_added
                 ))
                 apc_on_legend_added = True
