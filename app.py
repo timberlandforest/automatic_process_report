@@ -216,10 +216,7 @@ def graficar_con_seaborn(df, columnas, limites, area="General"):
 # Functions for extra visualizations
 
 def graficar_distribucion_aire(df, tipo_grafico):
-    # Ruta para guardar la imagen
-    os.makedirs("report_images", exist_ok=True)
-    image_path = "report_images/Air_Distribution_Combustion.png"
-
+    image_path = "report_images/distribucion_aire.png"
     # Límites de referencia
     limite_inferior = 0.14
     limite_superior = 0.28
@@ -245,7 +242,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 y=df[var],
                 mode='lines',
                 name=var,
-                line=dict(color=colores_individuales[var])  # Colores individuales
+                line=dict(color=colores_individuales[var])
             ))
 
         # Agregar límites con líneas horizontales
@@ -258,15 +255,12 @@ def graficar_distribucion_aire(df, tipo_grafico):
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
-        fig.write_image(image_path)
-        return fig  # Devuelve la figura para visualizar en Plotly
-
+        st.plotly_chart(fig, use_container_width=True)
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
         leyendas_agregadas = set()
 
-        # Graficar las variables
         for var in variables:
             for i in range(len(df) - 1):
                 x_segment = df['datetime'].iloc[i:i+2]
@@ -297,14 +291,10 @@ def graficar_distribucion_aire(df, tipo_grafico):
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
-
-        # Ajustar y guardar la imagen
-        plt.tight_layout()
         plt.savefig(image_path)
-        plt.close(fig) 
-
-        # Visualización híbrida
-        return image_path
+        st.pyplot(fig)
+        plt.close(fig)
+    return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
@@ -768,4 +758,4 @@ if os.path.exists(archivo_csv):
             generar_reporte_html_y_pdf(imagenes_por_area)
 else:
     st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
-    
+       
