@@ -802,16 +802,16 @@ if os.path.exists(archivo_csv):
                     figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
                     imagenes.extend(figs_licor)
                 elif area == 'Emisiones':
-                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_oxigeno)
-                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_monoxido)
+                    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_oxigeno)
+                    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
+                    imagenes.append(image_path_monoxido)
     
                 # Visualizaciones individuales para variables de emisiones
-                emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
-                for variable in emissions_variables:
-                image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
-                imagenes.append(image_path)
+                    emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
+                    for variable in emissions_variables:
+                    image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
+                    imagenes.append(image_path)
         
             # Crear informe general con gráficos por área
             imagenes_por_area = {}
