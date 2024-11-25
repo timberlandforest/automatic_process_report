@@ -810,8 +810,8 @@ if os.path.exists(archivo_csv):
                 # Visualizaciones individuales para variables de emisiones
                     emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
                     for variable in emissions_variables:
-                    image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
-                    imagenes.append(image_path)
+                        image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
+                        imagenes.append(image_path)
         
             # Crear informe general con gráficos por área
             imagenes_por_area = {}
