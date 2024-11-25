@@ -236,6 +236,8 @@ def graficar_distribucion_aire(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
+        
+        # Agregar las curvas de las variables principales
         for var in variables:
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
@@ -245,17 +247,31 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 line=dict(color=colores_individuales[var])
             ))
 
+        # Agregar curva para el estado del APC
+        fig.add_trace(go.Scatter(
+            x=df['datetime'],
+            y=[max_val if val == max_val else None for val in df['Control APC Flujo aire a anillo cuaternario']],
+            mode='lines',
+            name='APC ON',
+            line=dict(color='gold', width=3, dash='dot')
+        ))
+
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
+        # Configurar diseño del gráfico
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
             yaxis_title="Valor",
             legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
         )
+
+        # Mostrar en Streamlit y guardar la imagen
         st.plotly_chart(fig, use_container_width=True)
+        fig.write_image(image_path)
+
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
@@ -294,7 +310,9 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
+
     return image_path
+
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
@@ -728,10 +746,8 @@ def add_bg_from_local(image_path):
         unsafe_allow_html=True
     )
 
-
 # Set the background image
 add_bg_from_local("docs/MAPA_L3.jpg")
-
 
 # Streamlit App
 
