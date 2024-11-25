@@ -473,7 +473,7 @@ def graficar_emisiones_apc(df, variable, tipo_grafico):
                 y=df[variable],
                 mode='lines',
                 name=variable,
-                line=dict(color='black')  # Color estándar si el APC no está disponible
+                line=dict(color='lightgreen')  # Color estándar si el APC no está disponible
             ))
 
         # Agregar límites
