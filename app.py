@@ -237,26 +237,63 @@ def graficar_distribucion_aire(df, tipo_grafico):
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
+        apc_on_legend_added = False  # Control para agregar "APC ON" solo una vez
+
         for var in variables:
+            # Graficar la curva completa en su color original
             fig.add_trace(go.Scatter(
                 x=df['datetime'],
                 y=df[var],
                 mode='lines',
                 name=var,
-                line=dict(color=colores_individuales[var])
+                line=dict(color=colores_individuales[var], width=2)
             ))
+
+            # Identificar los índices donde APC está encendido
+            apc_on_indices = df['Control APC Flujo aire a anillo cuaternario'] == max_apc
+
+            # Convertir estos índices en segmentos continuos
+            apc_on_segments = []
+            current_segment = []
+            for i in range(len(apc_on_indices)):
+                if apc_on_indices.iloc[i]:
+                    current_segment.append(i)
+                else:
+                    if current_segment:
+                        apc_on_segments.append(current_segment)
+                        current_segment = []
+            if current_segment:  # Añadir el último segmento si no se cerró
+                apc_on_segments.append(current_segment)
+
+            # Graficar cada segmento donde APC está encendido
+            for segment in apc_on_segments:
+                fig.add_trace(go.Scatter(
+                    x=df.iloc[segment]['datetime'],
+                    y=df.iloc[segment][var],
+                    mode='lines',
+                    name="APC ON" if not apc_on_legend_added else None,
+                    line=dict(color='gold', width=4),
+                    showlegend=not apc_on_legend_added
+                ))
+                apc_on_legend_added = True
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
         fig.add_hline(y=limite_superior, line_dash="dash", line_color="green", annotation_text="Límite Superior")
 
+        # Configurar diseño
         fig.update_layout(
             title="Air Distribution [%]",
             xaxis_title="Fecha",
             yaxis_title="Valor",
-            legend=dict(yanchor="bottom", y=0.01, xanchor="left", x=0.01, font=dict(size=10))
+            legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01, font=dict(size=10)),
+            height=600
         )
+
         st.plotly_chart(fig, use_container_width=True)
+
+    return image_path
+        
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
