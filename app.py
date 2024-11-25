@@ -732,7 +732,6 @@ add_bg_from_local("docs/MAPA_L3.jpg")
 
 # Streamlit App
 
-
 # Logo de la Empresa
 logo_url = "https://gestal.usm.cl/wp-content/uploads/2024/09/LOGO-ARAUCO.png"
 
@@ -749,6 +748,7 @@ st.markdown(
 # Título de la aplicación
 st.title("Reporte Automatizado de Procesos")
 
+# Verificar si el archivo CSV existe
 archivo_csv = "data_caldera_2.csv"
 if os.path.exists(archivo_csv):
     df = pd.read_csv(archivo_csv)
@@ -773,6 +773,7 @@ if os.path.exists(archivo_csv):
         if st.button("Generar informe"):
             limites_calculados = calcular_limites(df_filtrado, columnas_seleccionadas, area=area_seleccionada)
 
+            # Generar gráficos por tipo
             if tipo_grafico == 'Matplotlib/Seaborn':
                 imagenes = graficar_con_seaborn(df_filtrado, columnas_seleccionadas, limites_calculados, area_seleccionada)
             else:
@@ -780,97 +781,56 @@ if os.path.exists(archivo_csv):
 
             # Agregar gráficos específicos según el área seleccionada
             if area_seleccionada == 'Combustion':
-                image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
-                imagenes.append(image_path)
+                imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Ensuciamiento':
-                image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_press_diff)
-                image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_heat_coef)
+                imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
+                imagenes.append(graficar_distribucion_heat_coef(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Licor Verde':
-                figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
-                imagenes.extend(figs_licor)
+                imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
             elif area_seleccionada == 'Emisiones':
-                
-                # Visualizaciones individuales para variables de emisiones
-                emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
-                for variable in emissions_variables:
+                for variable in ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']:
                     try:
-                        image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
-                        imagenes.append(image_path)
+                        imagenes.append(graficar_emisiones_apc(df_filtrado, variable, tipo_grafico))
                     except Exception as e:
                         st.error(f"No se pudo generar la gráfica para {variable}: {e}")
-            
-                # Visualizaciones existentes para "Emisiones"
-                image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_oxigeno)
-                image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-                imagenes.append(image_path_monoxido)
-
+                imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
+                imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
 
             # Generar informe
             imagenes_por_area = {area_seleccionada: imagenes}
             generar_reporte_html_y_pdf(imagenes_por_area)
 
     elif tipo_reporte == 'General':
-        columnas_seleccionadas = [col for cols in areas_de_proceso.values() for col in cols]
-
         if st.button("Generar informe"):
             imagenes = []
             for area, columnas in areas_de_proceso.items():
                 limites_calculados = calcular_limites(df_filtrado, columnas, area=area)
+                columnas_no_agrupadas = [col for col in columnas if col not in omit_individual_plots.get(area, [])]
 
-                columnas_no_agrupadas = [
-                    col for col in columnas if col not in omit_individual_plots.get(area, [])
-                ]
                 if tipo_grafico == 'Matplotlib/Seaborn':
-                    imagenes.extend(
-                        graficar_con_seaborn(df_filtrado, columnas_no_agrupadas, limites_calculados, area)
-                    )
+                    imagenes.extend(graficar_con_seaborn(df_filtrado, columnas_no_agrupadas, limites_calculados, area))
                 else:
-                    imagenes.extend(
-                        graficar_con_plotly(df_filtrado, columnas_no_agrupadas, limites_calculados, area)
-                    )
+                    imagenes.extend(graficar_con_plotly(df_filtrado, columnas_no_agrupadas, limites_calculados, area))
 
                 # Agregar gráficos específicos por área
                 if area == 'Combustion':
-                    image_path = graficar_distribucion_aire(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path)
+                    imagenes.append(graficar_distribucion_aire(df_filtrado, tipo_grafico))
                 elif area == 'Ensuciamiento':
-                    image_path_press_diff = graficar_diferencia_presion(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_press_diff)
-                    image_path_heat_coef = graficar_distribucion_heat_coef(df_filtrado, tipo_grafico)
-                    imagenes.append(image_path_heat_coef)
+                    imagenes.append(graficar_diferencia_presion(df_filtrado, tipo_grafico))
+                    imagenes.append(graficar_distribucion_heat_coef(df_filtrado, tipo_grafico))
                 elif area == 'Licor Verde':
-                    figs_licor = graficar_comparacion_licor_verde(df_filtrado, tipo_grafico)
-                    imagenes.extend(figs_licor)
+                    imagenes.extend(graficar_comparacion_licor_verde(df_filtrado, tipo_grafico))
                 elif area == 'Emisiones':
-                 # Generar gráficos individuales para emisiones
-                 emissions_variables = ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']
-                 for variable in emissions_variables:
-                     try:
-                         image_path = graficar_emisiones_apc(df_filtrado, variable, tipo_grafico)
-                         imagenes.append(image_path)
-                     except Exception as e:
-                         st.error(f"No se pudo generar la gráfica para {variable}: {e}")
+                    for variable in ['NOx [mg/Nm³]', 'Material particulado [mg/Nm³]', 'SO2 [mg/Nm³]', 'TRS [mg/Nm³]', 'CO [mg/Nm³]']:
+                        try:
+                            imagenes.append(graficar_emisiones_apc(df_filtrado, variable, tipo_grafico))
+                        except Exception as e:
+                            st.error(f"No se pudo generar la gráfica para {variable}: {e}")
+                    imagenes.append(graficar_contenido_oxigeno(df_filtrado, tipo_grafico))
+                    imagenes.append(graficar_contenido_monoxido(df_filtrado, tipo_grafico))
 
-    # Gráficos adicionales para emisiones
-    image_path_oxigeno = graficar_contenido_oxigeno(df_filtrado, tipo_grafico)
-    imagenes.append(image_path_oxigeno)
-    image_path_monoxido = graficar_contenido_monoxido(df_filtrado, tipo_grafico)
-    imagenes.append(image_path_monoxido)
-
-
-        
-    # Crear informe general con gráficos por área
-    imagenes_por_area = {}
-    for area, columnas in areas_de_proceso.items():
-        imagenes_area = [
-            img for img in imagenes if any(col in img for col in columnas)
-        ]
-        imagenes_por_area[area] = imagenes_area
-
-    generar_reporte_html_y_pdf(imagenes_por_area)
-    else:
-        st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
-       
+            # Crear informe general
+            imagenes_por_area = {area: [img for img in imagenes if any(col in img for col in columnas)] for area, columnas in areas_de_proceso.items()}
+            generar_reporte_html_y_pdf(imagenes_por_area)
+else:
+    st.error(f"El archivo {archivo_csv} no se encuentra en la carpeta.")
