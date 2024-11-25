@@ -249,18 +249,23 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 line=dict(color=colores_individuales[var], width=2)
             ))
 
-            # Graficar solo los segmentos donde el APC está encendido (máximo)
-            df_apc_on = df[df['Control APC Flujo aire a anillo cuaternario'] == max_apc]
-            if not df_apc_on.empty:
+            # Identificar segmentos independientes donde el APC está encendido
+            apc_on_indices = df['Control APC Flujo aire a anillo cuaternario'] == max_apc
+            apc_on_segments = df[apc_on_indices]
+
+            # Dividir en segmentos continuos
+            apc_on_segments['segment'] = (apc_on_segments['datetime'].diff() != pd.Timedelta(seconds=1)).cumsum()
+
+            for segment_id, segment_data in apc_on_segments.groupby('segment'):
                 fig.add_trace(go.Scatter(
-                    x=df_apc_on['datetime'],
-                    y=df_apc_on[var],
+                    x=segment_data['datetime'],
+                    y=segment_data[var],
                     mode='lines',
                     name="APC ON" if not apc_on_legend_added else None,
-                    line=dict(color='gold', width=4),  # Segmentos APC ON más gruesos y dorados
+                    line=dict(color='gold', width=4),
                     showlegend=not apc_on_legend_added
                 ))
-                apc_on_legend_added = True  # Leyenda agregada solo una vez
+                apc_on_legend_added = True
 
         # Agregar límites con líneas horizontales
         fig.add_hline(y=limite_inferior, line_dash="dash", line_color="red", annotation_text="Límite Inferior")
@@ -276,7 +281,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-
+        
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
