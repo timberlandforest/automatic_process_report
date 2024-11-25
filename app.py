@@ -446,7 +446,7 @@ def graficar_comparacion_licor_verde(df, tipo_grafico):
             continue
 
         # Filtrar datos mayores a 0 para ambas columnas
-        df_filtered = df[(df[lab_var] > 0) & (df[inst_var] > 0)]
+        df_filtered = df[(df[lab_var] > 20) & (df[inst_var] > 20)]
 
         if df_filtered.empty:
             print(f"Warning: No data > 0 for '{lab_var}' or '{inst_var}' in '{title}'. Skipping plot.")
