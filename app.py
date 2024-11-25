@@ -231,8 +231,17 @@ def graficar_distribucion_aire(df, tipo_grafico):
         'Cuaternario': 'darkblue',
     }
 
-    # Obtener el valor máximo de la variable de control
-    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Verificar si la columna 'Control APC Flujo aire a anillo cuaternario' existe
+    if 'Control APC Flujo aire a anillo cuaternario' not in df.columns:
+        st.error("La columna 'Control APC Flujo aire a anillo cuaternario' no está presente en el DataFrame.")
+        return None  # Detener la función si no existe
+
+    # Obtener el valor máximo de la variable de control (APC)
+    if df['Control APC Flujo aire a anillo cuaternario'].dropna().empty:
+        st.error("La columna 'Control APC Flujo aire a anillo cuaternario' no contiene datos válidos.")
+        return None  # Detener la función si no hay datos válidos
+
+    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
@@ -291,7 +300,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
         )
 
         st.plotly_chart(fig, use_container_width=True)
-  
+ 
     else:  # Matplotlib
         fig, ax = plt.subplots(figsize=(14, 8))
         variables = ['Primario', 'Secundario', 'Secundario Alto', 'Terciario', 'Cuaternario']
