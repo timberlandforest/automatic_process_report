@@ -313,7 +313,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
                 # Cambiar el color si la variable de control alcanza su valor máximo
-                color = 'gold' if control_segment.max() == max_val else colores_individuales[var]
+                 color = 'gold' if max_val is not None and control_segment.max() == max_val else colores_individuales[var]
 
                 # Etiqueta para la leyenda
                 label = None
@@ -329,17 +329,19 @@ def graficar_distribucion_aire(df, tipo_grafico):
         # Agregar límites con líneas horizontales
         ax.axhline(y=limite_inferior, color='red', linestyle='--', label='Límite Inferior')
         ax.axhline(y=limite_superior, color='green', linestyle='--', label='Límite Superior')
-
-        # Configurar título y etiquetas
         ax.set_title("Air Distribution [%]", fontsize=15, fontweight='bold')
         ax.set_xlabel("Fecha", fontsize=15, fontweight='bold')
         ax.set_ylabel("Valor", fontsize=15, fontweight='bold')
         ax.legend(loc='upper left', fontsize=10)
         plt.xticks(rotation=45)
+        plt.tight_layout()
+
+        image_path = "report_images/distribucion_aire.png"
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
-    return image_path
+
+        return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
