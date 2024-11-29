@@ -241,7 +241,8 @@ def graficar_distribucion_aire(df, tipo_grafico):
         st.error("La columna 'Control APC Flujo aire a anillo cuaternario' no contiene datos válidos.")
         return None  # Detener la función si no hay datos válidos
 
-    max_apc = df['Control APC Flujo aire a anillo cuaternario'].max()
+    # Usar un nombre consistente para el valor máximo
+    max_val = df['Control APC Flujo aire a anillo cuaternario'].max()
 
     if tipo_grafico == 'Plotly Express':
         fig = go.Figure()
@@ -259,7 +260,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
             ))
 
             # Identificar los índices donde APC está encendido
-            apc_on_indices = df['Control APC Flujo aire a anillo cuaternario'] == max_apc
+            apc_on_indices = df['Control APC Flujo aire a anillo cuaternario'] == max_val
 
             # Convertir estos índices en segmentos continuos
             apc_on_segments = []
@@ -336,12 +337,11 @@ def graficar_distribucion_aire(df, tipo_grafico):
         plt.xticks(rotation=45)
         plt.tight_layout()
 
-        image_path = "report_images/distribucion_aire.png"
         plt.savefig(image_path)
         st.pyplot(fig)
         plt.close(fig)
 
-        return image_path
+    return image_path
 
 def graficar_diferencia_presion(df, tipo_grafico):
     image_path = "report_images/Pressure_Diff_Ensuciamiento.png"
