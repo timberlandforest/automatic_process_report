@@ -391,7 +391,6 @@ def graficar_diferencia_presion(df, tipo_grafico):
         plt.close(fig)
     return image_path
 
-
 # Continue similarly for the other functions like `graficar_distribucion_heat_coef`, `graficar_comparacion_licor_verde`, etc.
 
 def graficar_distribucion_heat_coef(df, tipo_grafico):
@@ -431,7 +430,6 @@ def graficar_distribucion_heat_coef(df, tipo_grafico):
         st.pyplot(fig)  # Mostrar el gráfico
         plt.close(fig)  # Cerrar la figura
     return image_path
-
 
 def graficar_comparacion_licor_verde(df, tipo_grafico):
     figs_paths = []
