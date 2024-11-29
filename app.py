@@ -313,7 +313,7 @@ def graficar_distribucion_aire(df, tipo_grafico):
                 control_segment = df['Control APC Flujo aire a anillo cuaternario'].iloc[i:i+2]
 
                 # Cambiar el color si la variable de control alcanza su valor máximo
-                 color = 'gold' if max_val is not None and control_segment.max() == max_val else colores_individuales[var]
+                color = 'gold' if max_val is not None and control_segment.max() == max_val else colores_individuales[var]
 
                 # Etiqueta para la leyenda
                 label = None
