@@ -68,7 +68,7 @@ limites_proceso = {
         'Temperatura de gases de salida [°C]': {'superior': 160},
     },
     'Vapor': {
-        'Ratio flujo de vapor/ [Ton vap/kg DS]': {'inferior': 3.6, 'superior': 4.2},
+        'gen_vap_licor [ton/kg DS]': {'inferior': 3.6, 'superior': 4.2},
         'Temperatura de salida vapor [°C]': {'superior': 495},
     },
     'Ensuciamiento': {
