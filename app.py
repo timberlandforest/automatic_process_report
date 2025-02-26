@@ -19,7 +19,7 @@ areas_de_proceso = {
         'Aire de combustión/ carga de licor [Nm3/kg DS]', 'Temperatura de gases de salida [°C]'
     ],
     'Vapor': [
-        'Ratio flujo de vapor/ [Ton vap/kg DS]', 'Temperatura de salida vapor [°C]', 'Atemperacion [°C]'
+        'gen_vap_licor [ton/kg DS]', 'Temperatura de salida vapor [°C]', 'Atemperacion [°C]'
     ],
     'Ensuciamiento': [
         'Soiling_rate_point', 'Diff_Press_SC [kPa]', 'Diff_Press_BG [kPa]',
